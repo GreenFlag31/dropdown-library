@@ -1,0 +1,77 @@
+.dropdown-container {
+  padding: 1rem;
+  max-width: 50rem;
+  margin: auto;
+}
+.dropdown-container h1 {
+  margin-bottom: 3rem;
+  text-align: center;
+  font-family: "Allura";
+  font-size: 3rem;
+}
+.dropdown-main-title {
+  font-family: "Allura";
+  font-size: 1.8rem;
+}
+.selection-container {
+  padding: 1rem;
+  width: 10rem;
+  background: #e6e6e6;
+}
+.multiple-selection {
+  margin-top: 5rem;
+  margin-bottom: 50rem;
+}
+.multiple-selection .selection-container {
+  background: #5c0000;
+  color: #fff;
+}
+.multiple-selection svg {
+  fill: #fff;
+}
+header button.add-star {
+  margin-top: 1rem;
+  border: none;
+  color: #fff;
+  background: #000;
+  border-radius: 0.3rem;
+  cursor: pointer;
+}
+.add-star a {
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  padding: 0.5rem 1rem;
+  gap: 0.5rem;
+}
+.add-star svg {
+  fill: gold;
+  height: 16px;
+  width: 16px;
+}
+.presentation {
+  text-align: justify;
+}
+main {
+  margin-top: 5rem;
+}
+.item img {
+  object-fit: cover;
+  width: 18px;
+  height: 15px;
+  display: block;
+  margin-right: 0.3rem;
+}
+.dropdown-2 {
+  margin-top: 3rem;
+}
+.dropdown-translate {
+  display: flex;
+  justify-content: space-between;
+  gap: 3rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+.multiple {
+  margin-top: 1rem;
+}

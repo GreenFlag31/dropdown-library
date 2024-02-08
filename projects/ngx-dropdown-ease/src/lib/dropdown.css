@@ -1,0 +1,158 @@
+.dropdown {
+  position: relative;
+  cursor: pointer;
+  user-select: none;
+  padding: 1rem;
+  clip-path: inset(-100vw -100vw -100vw -2px);
+}
+
+.dropdown-title-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.3rem;
+}
+span.badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #000;
+  padding: 0.15rem 0.4rem;
+  border-radius: 0.9rem;
+  color: #fff;
+  font-size: 0.8rem;
+}
+.dropdown-menu {
+  position: absolute;
+  top: 105%;
+  width: 160px;
+  left: 0;
+  overflow: hidden;
+  width: 100%;
+  box-shadow: 0 1px 5px 0 rgb(0 0 0 / 24%);
+  z-index: 1;
+  background: #fff;
+  color: #000;
+  max-height: 0;
+}
+.dropdown-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgb(221, 221, 221);
+  border-radius: 10px;
+}
+
+.dropdown-menu.top {
+  bottom: 105%;
+  top: auto;
+}
+.dropdown-title-top {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  /* color: deeppink; */
+}
+
+@keyframes up-title {
+  from {
+    /* top: -50%; */
+    top: 20%;
+    left: -50%;
+    font-size: 75%;
+  }
+  to {
+    top: 20%;
+    left: 10%;
+    /* transform: translateX(50%); */
+    font-size: 75%;
+  }
+}
+.dropdown-title {
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 85%;
+}
+.dropdown-item {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  list-style-type: none;
+  color: inherit;
+  padding: 0.625rem;
+  width: 100%;
+}
+
+.selection-container svg {
+  margin-left: auto;
+  overflow: visible;
+  width: 15px;
+  height: 15px;
+}
+
+.selection-container svg path {
+  stroke: green;
+}
+.selection-container path {
+  stroke-dasharray: 315;
+  stroke-dashoffset: 0;
+  animation: dash 0.2s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+@keyframes dash {
+  from {
+    stroke-dashoffset: 315;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.unselect p {
+  padding: 0.625rem;
+}
+
+.dropdown-item:hover,
+.unselect:hover {
+  background: #f6f6f6;
+}
+
+.dropdown-icon {
+  transition: 0.3s;
+  transform: rotate(0);
+}
+
+@keyframes going-down {
+  from {
+    transform: translateY(-5%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes going-up {
+  from {
+    transform: translateY(5%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes going-left {
+  from {
+    transform: translateX(5%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+@keyframes going-right {
+  from {
+    transform: translateX(-5%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
