@@ -4,22 +4,25 @@ import {
   ElementRef,
   HostListener,
   Input,
-  AfterViewInit,
   OnDestroy,
   ContentChild,
   ContentChildren,
   QueryList,
   AfterContentInit,
+  HostBinding,
 } from '@angular/core';
 import { Subject, filter, fromEvent, switchMap, take, takeUntil } from 'rxjs';
 import { DropdownItemDirective } from './dropdown-item.directive';
 import { DropdownsData, Select } from './interface';
 import { DropdownService } from './dropdown.service';
+import { DropdownTitleContainerDirective } from './dropdown-title-container.directive';
+import { DropdownMenuDirective } from './dropdown-menu.directive';
+import { NumberSymbol } from '@angular/common';
 
 @Directive({
   selector: '[ngxDropdownTitle]',
   standalone: true,
-  host: { class: 'dropdown-title' },
+  host: { class: 'ngx-dropdown-title' },
 })
 export class DropdownTitleDirective {
   constructor(private element: ElementRef<HTMLElement>) {}
@@ -32,17 +35,16 @@ export class DropdownTitleDirective {
 @Directive({
   selector: '[ngxDropdown]',
   standalone: true,
-  host: { class: 'dropdown' },
+  host: { class: 'ngx-dropdown' },
 })
-export class DropdownDirective
-  implements OnInit, AfterContentInit, AfterViewInit, OnDestroy
-{
+export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
   @Input() selection: Select = 'single';
   @Input() defaultTitle = '';
-  @Input() defaultActiveItems: number[] = [];
+  @Input() disable = false;
 
   visibilityChange = new Subject<boolean>();
   selectionChange = new Subject<string>();
+  private defaultActiveItems: number[] = [];
   private listOfElements: string[] = [];
   private open = false;
   private mouseDown$ = fromEvent<MouseEvent>(document, 'mousedown');
@@ -54,9 +56,15 @@ export class DropdownDirective
   private titleIsOnTop = false;
   private pTitleOnTop!: HTMLParagraphElement;
   private titleColor = '#000';
-  defaultColor = '#000';
+  private defaultColor = '#000';
+  private invalid = false;
+  private labelMinSelection!: HTMLParagraphElement;
+  private keyboardIndex = -1;
 
+  @ContentChild(DropdownTitleContainerDirective)
+  dropdownTitleContainer!: DropdownTitleContainerDirective;
   @ContentChild(DropdownTitleDirective) dropdownTitle!: DropdownTitleDirective;
+  @ContentChild(DropdownMenuDirective) dropdownMenu!: DropdownMenuDirective;
   @ContentChildren(DropdownItemDirective, { descendants: true })
   dropdownItems!: QueryList<DropdownItemDirective>;
 
@@ -65,12 +73,12 @@ export class DropdownDirective
     private dropdownService: DropdownService
   ) {}
 
-  set default_title(value: string) {
-    this.defaultTitle = value;
-  }
-
   get default_title() {
     return this.defaultTitle;
+  }
+
+  set default_title(value: string) {
+    this.defaultTitle = value;
   }
 
   get native() {
@@ -85,12 +93,23 @@ export class DropdownDirective
     return this.ID;
   }
 
-  getListOfElements() {
-    return this.listOfElements;
+  get currentNumberOfItemsSelected() {
+    return this.dropdownTitleContainer.selectionNumber;
   }
 
-  addListItem(item: string) {
-    this.listOfElements.push(item);
+  set titleValue(value: string) {
+    this.defaultTitle = value;
+  }
+
+  setInvalidDropdown(invalid: boolean) {
+    this.invalid = invalid;
+    this.labelMinSelection.style.visibility = `${
+      invalid ? 'visible' : 'hidden'
+    }`;
+  }
+
+  getListOfElements() {
+    return this.listOfElements;
   }
 
   clearListOfElements() {
@@ -104,11 +123,39 @@ export class DropdownDirective
     this.dropdownService.dropdownID += 1;
   }
 
+  arrayOfItems!: (DropdownItemDirective | undefined)[];
   ngAfterContentInit() {
+    this.createLabelMinNumberSelection();
+    this.populateDropdownsInTheService();
+    this.addTabIndex();
+    this.arrayOfItems = this.dropdownItems.toArray();
+  }
+
+  private addTabIndex() {
+    this.element.nativeElement.tabIndex = 0;
+  }
+
+  private createLabelMinNumberSelection() {
+    const minSelection = this.dropdownMenu.minNumberElementsSelection;
+
+    if (minSelection === 0) return;
+
+    this.element.nativeElement.classList.add('transparent-border');
+    this.labelMinSelection = document.createElement('p');
+    this.labelMinSelection.classList.add('ngx-label-min-selection');
+    this.labelMinSelection.innerText = `Please select min ${minSelection} element${
+      minSelection > 1 ? 's' : ''
+    }`;
+    this.element.nativeElement.prepend(this.labelMinSelection);
+  }
+
+  private populateDropdownsInTheService() {
     const itemsValue = [];
     for (const item of this.dropdownItems) {
       itemsValue.push(item.native.innerText);
     }
+
+    this.defaultActiveItems = this.dropdownMenu.defaultActive;
 
     this.elementAndContent = {
       element: this,
@@ -116,12 +163,9 @@ export class DropdownDirective
       activesIndex: this.defaultActiveItems,
       title: this.dropdownTitle.native.innerText,
       itemsValue,
-      updated: false,
     };
     this.dropdownService.addActiveDropdownsAndContent(this.elementAndContent);
   }
-
-  ngAfterViewInit() {}
 
   /**
    * Update the default active elements.
@@ -135,10 +179,10 @@ export class DropdownDirective
       if (this.defaultActiveItems.indexOf(i) === -1) continue;
 
       const content = current.native.innerText || '';
-      this.listOfElements.push(content);
       // styling
       current.onItemSelection();
-      this.selectionChange.next(content);
+      this.updateDropdownTitle(content);
+      this.dropdownTitleContainer.handleBadge();
 
       if (this.selection === 'single') break;
     }
@@ -149,11 +193,23 @@ export class DropdownDirective
     this.titleColor = color;
   }
 
-  updateTitleValue(value: string) {
-    this.defaultTitle = value;
+  private updateTitleInnerText(
+    element: HTMLElement | undefined,
+    title: string
+  ) {
+    if (!element || element.innerText === '') return;
+    element.innerText = title;
   }
 
+  /**
+   * In case of translation and zero active items, update the title or the paragraph (the title on top).
+   */
   displayTitleOnTop(animation = true) {
+    if (this.listOfElements.length === 0) {
+      this.updateTitleInnerText(this.dropdownTitle.native, this.defaultTitle);
+    }
+    this.updateTitleInnerText(this.pTitleOnTop, this.defaultTitle);
+
     if (
       this.dropdownService.getDropdown(this.ID).activesIndex.length === 0 &&
       !this.open
@@ -163,19 +219,19 @@ export class DropdownDirective
 
     if (!this.pTitleOnTop) {
       this.pTitleOnTop = document.createElement('p');
-      this.pTitleOnTop.classList.add('dropdown-title-top');
+      this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
       this.pTitleOnTop.style.color = this.titleColor;
+      this.dropdownTitle.native.style.minHeight =
+        this.dropdownTitle.native.clientHeight + 'px';
+      this.dropdownTitle.native.innerText = '';
       this.element.nativeElement.prepend(this.pTitleOnTop);
-      // this.dropdownTitle.native.style.height =
-      //   this.dropdownTitle.native.clientHeight + 'px';
     }
 
     this.pTitleOnTop.innerText = this.defaultTitle;
-    // this.pTitleOnTop.style.color = this.titleColor;
-    // this.dropdownTitle.native.innerText = '';
-    // this.titleIsOnTop = true;
+    this.pTitleOnTop.style.color = this.titleColor;
+    this.titleIsOnTop = true;
 
-    this.pTitleOnTop.style.animation = `up-title ${
+    this.pTitleOnTop.style.animation = `to-right-title ${
       animation ? '0.3s' : ''
     } forwards`;
   }
@@ -226,31 +282,84 @@ export class DropdownDirective
     dropdownTitle.innerText = '';
 
     if (this.selection === 'multiple') {
-      if (!this.listOfElements.includes(selection)) {
-        this.listOfElements.push(selection);
-      } else {
+      if (this.listOfElements.includes(selection)) {
         this.listOfElements.splice(this.listOfElements.indexOf(selection), 1);
+      } else {
+        this.listOfElements.push(selection);
       }
     } else {
-      this.listOfElements = [selection];
+      if (this.listOfElements.includes(selection)) {
+        this.listOfElements = [];
+      } else {
+        this.listOfElements = [selection];
+      }
     }
 
-    // renverser l'ordre??
-    dropdownTitle.innerText = this.listOfElements.join(', ');
+    dropdownTitle.innerText = this.listOfElements.reverse().join(', ');
     dropdownTitle.title = dropdownTitle.innerText;
   }
 
-  @HostListener('click', ['$event.target'])
+  @HostListener('click', ['$event'])
   onClick() {
+    if (this.disable) return;
     this.open = !this.open;
     this.visibilityChange.next(this.open);
+  }
+
+  @HostListener('keydown.enter', ['$event'])
+  onEnter() {
+    if (this.open) return;
+    this.onClick();
+  }
+
+  @HostListener('keydown.arrowup', ['$event'])
+  onArrowUpKey(event: Event) {
+    event.preventDefault();
+    if (this.keyboardIndex > 0) {
+      this.keyboardIndex -= 1;
+      this.keyboardNavigation();
+    }
+  }
+
+  @HostListener('keydown.arrowdown', ['$event'])
+  onArrowDownKey(event: Event) {
+    event.preventDefault();
+    if (this.currentIndexKeyboardItem(this.keyboardIndex + 1)) {
+      this.keyboardIndex += 1;
+      this.keyboardNavigation();
+    }
+  }
+
+  private currentIndexKeyboardItem(index: number) {
+    return this.arrayOfItems[index];
+  }
+
+  keyboardNavigation() {
+    const current = this.currentIndexKeyboardItem(this.keyboardIndex);
+    const prev = this.currentIndexKeyboardItem(this.keyboardIndex - 1);
+    const next = this.currentIndexKeyboardItem(this.keyboardIndex + 1);
+
+    if (prev) {
+      prev.activation = false;
+    }
+    if (next) {
+      next.activation = false;
+    }
+
+    current!.activation = true;
+    current!.native.focus();
+  }
+
+  @HostListener('keydown.escape', ['$event'])
+  onEscape() {
+    this.onClick();
   }
 
   @HostListener('document:click')
   onClickOutside() {
     this.mouseDown$
       .pipe(
-        filter(() => this.open),
+        filter(() => this.open && !this.disable),
         filter((event) => {
           return !this.element.nativeElement.contains(event.target as Node);
         }),
@@ -268,6 +377,16 @@ export class DropdownDirective
         // End the active subscription
         this.notifierEndSub.next();
       });
+  }
+
+  @HostBinding('class.ngx-disabled-dropdown')
+  get disabled() {
+    return this.disable;
+  }
+
+  @HostBinding('class.ngx-invalid')
+  get invalidated() {
+    return this.invalid;
   }
 
   ngOnDestroy() {

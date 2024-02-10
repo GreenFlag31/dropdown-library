@@ -2,12 +2,11 @@
   <header>
     <h1>ngx-dropdown-ease</h1>
     <p class="presentation">
-      This library supports data communication between the calling component and
-      the dropdown itself. It also enables the opening of multiple dropdowns and
-      provides a variety of customizable options, including both custom and
-      ready-to-use animations, along with dropdown configuration settings. Get
-      full control on the dropdowns and implement it in your application in no
-      time!
+      This library supports single and multiple selection, style customisation,
+      translation, and many other options. Dropdowns automatically adjust their
+      opening position if there is not enough space for the items to be
+      displayed. If you use built-in animations, they will be adjusted
+      accordingly to ensure that the effect remains consistent.
     </p>
     <button class="add-star">
       <a href="https://github.com/GreenFlag31/dropdown-library" target="_blank">
@@ -23,18 +22,13 @@
 
   <main>
     <h2 class="dropdown-main-title">Support for translation</h2>
-    <p>Dropdowns with default active item.</p>
+    <p>Dropdowns with default active item, single selection.</p>
     <p>
-      Change the current language, and the default active item in the other
-      dropdown will be updated.
+      Change the current language, and the values in the other dropdown will be
+      updated.
     </p>
     <section class="dropdown-translate">
-      <div
-        ngxDropdown
-        [defaultActiveItems]="[0]"
-        class="selection-container"
-        #language
-      >
+      <div ngxDropdown class="selection-container" #language>
         <div
           ngxDropdownTitleContainer
           titleColor="deeppink"
@@ -42,7 +36,11 @@
         >
           <h4 ngxDropdownTitle>Language</h4>
         </div>
-        <div ngxDropdownMenu animation="going-up 0.3s">
+        <div
+          ngxDropdownMenu
+          animation="going-up 0.3s"
+          [defaultActiveItems]="[0]"
+        >
           @for (country of countries; track $index) {
           <div
             ngxDropdownItem
@@ -57,12 +55,7 @@
         </div>
       </div>
 
-      <div
-        ngxDropdown
-        [defaultActiveItems]="[0]"
-        class="selection-container"
-        #RBGA
-      >
+      <div ngxDropdown class="selection-container" #RBGA>
         <div
           ngxDropdownTitleContainer
           titleColor="deeppink"
@@ -70,7 +63,11 @@
         >
           <h4 ngxDropdownTitle>Colors</h4>
         </div>
-        <div ngxDropdownMenu [animationTimingMs]="200">
+        <div
+          ngxDropdownMenu
+          [defaultActiveItems]="[0]"
+          [animationTimingMs]="200"
+        >
           <p ngxDropdownItem>Red</p>
           <p ngxDropdownItem>Green</p>
           <p ngxDropdownItem>Blue</p>
@@ -81,10 +78,8 @@
     <section class="multiple-selection">
       <h2 class="dropdown-main-title">Multiple selection dropdown</h2>
       <p>
-        Dropdowns automatically adjust their opening position if there is not
-        enough space for the items to be displayed. If you use built-in
-        animations, they will be adjusted accordingly to ensure that the effect
-        remains consistent. Following dropdown opens items on top by default.
+        Following dropdown opens items on top by default, has a title on top set
+        on yellow, a badge sets to true, and a disabled item.
       </p>
       <div
         ngxDropdown
@@ -102,9 +97,47 @@
         </div>
         <div ngxDropdownMenu animation="going-down 0.3s" position="top">
           <p ngxDropdownItem>Angular</p>
+          <p ngxDropdownItem [disable]="true">JQuery</p>
           <p ngxDropdownItem>JS</p>
           <p ngxDropdownItem>HTML</p>
           <p ngxDropdownItem>CSS</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="habits-container">
+      <h2 class="dropdown-main-title">Minimum number of items to select</h2>
+      <p>
+        Multiple selection dropdown with a minimum number of items to select, 2
+        elements displayed, unselect option, and the content is translated.
+      </p>
+      <div
+        ngxDropdown
+        selection="multiple"
+        class="selection-container habits"
+        #habits
+      >
+        <div
+          ngxDropdownTitleContainer
+          iconColor="#000"
+          titleColor="darkblue"
+          defaultTitleColor="#000"
+        >
+          <h4 ngxDropdownTitle>Habits</h4>
+        </div>
+        <div
+          ngxDropdownMenu
+          animation="none"
+          [minNumberElementsToSelect]="2"
+          iconColor="darkblue"
+          [unselectOption]="true"
+          [unselectOptionStyle]="{ fontWeight: '600' }"
+          [elementsVisible]="2"
+        >
+          <p ngxDropdownItem>Wake up</p>
+          <p ngxDropdownItem>Code</p>
+          <p ngxDropdownItem>Sleep</p>
+          <p ngxDropdownItem>Repeat</p>
         </div>
       </div>
     </section>

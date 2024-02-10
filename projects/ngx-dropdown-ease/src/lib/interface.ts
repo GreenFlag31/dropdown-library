@@ -31,7 +31,7 @@ export interface DropdownsData {
   title: string;
   activesIndex: number[];
   itemsValue: string[];
-  updated: boolean;
+  labelUnselectOption?: string;
 }
 
 export type Select = 'single' | 'multiple';
@@ -40,4 +40,6 @@ export interface TranslatedValues {
   dropdown: ElementRef;
   title: string;
   items: string[];
+  labelMinSelection?: string;
+  labelUnselectOption?: string;
 }

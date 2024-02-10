@@ -11,12 +11,23 @@ export class DropdownService {
 
   constructor() {}
 
-  update(translatedValues: TranslatedValues[]) {
-    this.translation(translatedValues);
+  initialise(translatedValues: TranslatedValues[]) {
+    this.populateDropdownsData(translatedValues);
+
+    for (const dropdown of this.dropdownsData) {
+      this.initialiseLabelsAndContent(dropdown);
+    }
   }
 
-  translation(translatedValues: TranslatedValues[]) {
-    // modifier dropdownsAndNativeContent pour mettre les traductions à jour
+  update(translatedValues: TranslatedValues[]) {
+    this.populateDropdownsData(translatedValues);
+
+    for (const dropdown of this.dropdownsData) {
+      this.updateLabelsAndContent(dropdown);
+    }
+  }
+
+  private populateDropdownsData(translatedValues: TranslatedValues[]) {
     for (const translation of translatedValues) {
       let currentIndex = this.dropdownsData.findIndex(
         (dropdown) =>
@@ -29,19 +40,15 @@ export class DropdownService {
           ...this.dropdownsData[currentIndex],
           title: translation.title,
           itemsValue: translation.items,
+          ...(translation.labelUnselectOption
+            ? { labelUnselectOption: translation.labelUnselectOption }
+            : {}),
         };
       }
     }
-
-    // debugger;
-
-    // mettre à jour les indices actifs avec leurs valeurs: content, labels, title
-    for (const dropdown of this.dropdownsData) {
-      this.changeLabelsAndContent(dropdown);
-    }
   }
 
-  private changeLabelsAndContent(dropdownContent: DropdownsData) {
+  private initialiseLabelsAndContent(dropdownContent: DropdownsData) {
     const arrayItems = dropdownContent.element.dropdownItems.toArray();
     const dropdown = dropdownContent.element;
 
@@ -49,8 +56,28 @@ export class DropdownService {
       // update content
       const element = dropdownContent.itemsValue[i];
       arrayItems[i].updateValueTranslation(element);
+    }
 
-      // update labels
+    // update title
+    dropdown.titleValue = dropdownContent.title;
+    // update unselect
+    dropdown.dropdownMenu.unselectText =
+      dropdownContent.labelUnselectOption || '';
+    dropdown.displayTitleOnTop(false);
+    dropdown.setDefaultsActiveItems();
+  }
+
+  private updateLabelsAndContent(dropdownContent: DropdownsData) {
+    const arrayItems = dropdownContent.element.dropdownItems.toArray();
+    const dropdown = dropdownContent.element;
+    dropdown.clearListOfElements();
+
+    for (let i = 0; i < dropdownContent.itemsValue.length; i++) {
+      // update content
+      const element = dropdownContent.itemsValue[i];
+      arrayItems[i].updateValueTranslation(element);
+
+      // update labels (not at initialisation)
       const activeIndex = dropdownContent.activesIndex.indexOf(i);
       if (activeIndex !== -1) {
         dropdown.updateDropdownTitle(element);
@@ -58,13 +85,11 @@ export class DropdownService {
     }
 
     // update title
-    dropdown.updateTitleValue(dropdownContent.title);
+    dropdown.titleValue = dropdownContent.title;
+    // update unselect
+    dropdown.dropdownMenu.unselectText =
+      dropdownContent.labelUnselectOption || '';
     dropdown.displayTitleOnTop(false);
-
-    if (!dropdownContent.updated) {
-      dropdown.setDefaultsActiveItems();
-      dropdownContent.updated = true;
-    }
   }
 
   addActiveDropdownsAndContent(active: DropdownsData) {
@@ -76,21 +101,23 @@ export class DropdownService {
       return;
     }
 
-    // debugger;
-
     let activeIndexes = this.getDropdown(dropdownID);
 
     if (selection === 'multiple') {
-      if (!activeIndexes.activesIndex.includes(index)) {
-        activeIndexes.activesIndex.push(index);
-      } else {
+      if (activeIndexes.activesIndex.includes(index)) {
         activeIndexes.activesIndex.splice(
           activeIndexes.activesIndex.indexOf(index),
           1
         );
+      } else {
+        activeIndexes.activesIndex.push(index);
       }
     } else {
-      activeIndexes.activesIndex = [index];
+      if (activeIndexes.activesIndex.includes(index)) {
+        activeIndexes.activesIndex = [];
+      } else {
+        activeIndexes.activesIndex = [index];
+      }
     }
   }
 
@@ -98,6 +125,10 @@ export class DropdownService {
     return this.dropdownsData.findIndex(
       (dropdown) => dropdown.dropdownID === id
     );
+  }
+
+  clearActiveIndexCurrentDropdown(id: number) {
+    this.getDropdown(id).activesIndex = [];
   }
 
   getDropdown(dropdownIndex: number) {

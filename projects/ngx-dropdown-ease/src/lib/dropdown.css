@@ -1,18 +1,36 @@
-.dropdown {
+.ngx-dropdown {
   position: relative;
   cursor: pointer;
   user-select: none;
   padding: 1rem;
   clip-path: inset(-100vw -100vw -100vw -2px);
 }
+.ngx-dropdown.ngx-disabled-dropdown {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.ngx-label-min-selection {
+  position: absolute;
+  bottom: 105%;
+  left: 0;
+  font-size: 0.8rem;
+  color: #000;
+  text-wrap: nowrap;
+}
+.ngx-dropdown.transparent-border {
+  border: 1px solid transparent;
+}
+.ngx-dropdown.ngx-invalid {
+  border: 1px solid red;
+}
 
-.dropdown-title-container {
+.ngx-dropdown-title-container {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 0.3rem;
 }
-span.badge {
+span.ngx-badge {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +40,7 @@ span.badge {
   color: #fff;
   font-size: 0.8rem;
 }
-.dropdown-menu {
+.ngx-dropdown-menu {
   position: absolute;
   top: 105%;
   width: 160px;
@@ -35,29 +53,28 @@ span.badge {
   color: #000;
   max-height: 0;
 }
-.dropdown-menu::-webkit-scrollbar {
+
+.ngx-dropdown-menu::-webkit-scrollbar {
   width: 8px;
 }
 
-.dropdown-menu::-webkit-scrollbar-thumb {
+.ngx-dropdown-menu::-webkit-scrollbar-thumb {
   background: rgb(221, 221, 221);
   border-radius: 10px;
 }
 
-.dropdown-menu.top {
+.ngx-dropdown-menu.top {
   bottom: 105%;
   top: auto;
 }
-.dropdown-title-top {
+.ngx-dropdown-title-top {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  /* color: deeppink; */
 }
 
-@keyframes up-title {
+@keyframes to-right-title {
   from {
-    /* top: -50%; */
     top: 20%;
     left: -50%;
     font-size: 75%;
@@ -65,18 +82,17 @@ span.badge {
   to {
     top: 20%;
     left: 10%;
-    /* transform: translateX(50%); */
     font-size: 75%;
   }
 }
-.dropdown-title {
+.ngx-dropdown-title {
   font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 85%;
 }
-.dropdown-item {
+.ngx-dropdown-item {
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -85,21 +101,24 @@ span.badge {
   padding: 0.625rem;
   width: 100%;
 }
+.ngx-dropdown-item.ngx-disabled-item {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
 
-.selection-container svg {
+.ngx-dropdown svg {
   margin-left: auto;
   overflow: visible;
   width: 15px;
   height: 15px;
 }
 
-.selection-container svg path {
+.ngx-checked path {
   stroke: green;
 }
-.selection-container path {
+.ngx-checked path {
   stroke-dasharray: 315;
   stroke-dashoffset: 0;
-  animation: dash 0.2s cubic-bezier(0, 0, 0.2, 1) forwards;
 }
 @keyframes dash {
   from {
@@ -110,16 +129,19 @@ span.badge {
   }
 }
 
-.unselect p {
-  padding: 0.625rem;
+.ngx-dropdown-item:focus {
+  outline: none;
 }
 
-.dropdown-item:hover,
-.unselect:hover {
+.ngx-dropdown-item.active {
   background: #f6f6f6;
 }
 
-.dropdown-icon {
+.ngx-dropdown-item:hover {
+  background: #f6f6f6;
+}
+
+.ngx-dropdown-icon {
   transition: 0.3s;
   transform: rotate(0);
 }

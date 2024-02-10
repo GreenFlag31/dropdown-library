@@ -22,6 +22,7 @@ import { TranslatedValues } from '../../projects/ngx-dropdown-ease/src/lib/inter
 export class AppComponent implements OnInit, AfterViewInit {
   @ViewChild('RBGA') RBGA!: ElementRef;
   @ViewChild('language') language!: ElementRef;
+  @ViewChild('habits') habits!: ElementRef;
 
   countries = [
     {
@@ -46,16 +47,24 @@ export class AppComponent implements OnInit, AfterViewInit {
   ngOnInit() {
     // Initialisation
     this.translateService.onDefaultLangChange.subscribe(() => {
-      this.translate();
+      this.translateDropdowns();
     });
 
     // Changing language at runtime
     this.translateService.onLangChange.subscribe(() => {
-      this.translate();
+      this.updateDropdowns();
     });
   }
 
-  translate() {
+  translateDropdowns() {
+    this.dropdownService.initialise(this.dropdownsData());
+  }
+
+  updateDropdowns() {
+    this.dropdownService.update(this.dropdownsData());
+  }
+
+  dropdownsData() {
     const languagesData: TranslatedValues = {
       dropdown: this.language,
       title: this.translateService.instant('Language'),
@@ -73,8 +82,19 @@ export class AppComponent implements OnInit, AfterViewInit {
         this.translateService.instant('Blue'),
       ],
     };
+    const habitsData: TranslatedValues = {
+      dropdown: this.habits,
+      title: this.translateService.instant('Habits'),
+      items: [
+        this.translateService.instant('Wake up'),
+        this.translateService.instant('Code'),
+        this.translateService.instant('Sleep'),
+        this.translateService.instant('Repeat'),
+      ],
+      labelUnselectOption: this.translateService.instant('Unselect'),
+    };
 
-    this.dropdownService.translation([languagesData, colorsData]);
+    return [languagesData, colorsData, habitsData];
   }
 
   ngAfterViewInit() {}
