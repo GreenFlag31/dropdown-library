@@ -48,11 +48,15 @@ export class DropdownTitleContainerDirective
     return this.numberOfItems();
   }
 
+  get isBadge() {
+    return this.badge;
+  }
+
   ngOnInit() {
     this.span = document.createElement('span');
     this.span.classList.add('ngx-badge');
     this.dropdown.setTitleColor(this.defaultTitleColor, this.titleColor);
-    this.element.nativeElement.style.color = this.defaultTitleColor;
+    this.native.style.color = this.defaultTitleColor;
   }
 
   ngAfterViewInit() {

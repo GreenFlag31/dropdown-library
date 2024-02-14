@@ -1,4 +1,4 @@
-import { Injectable, QueryList } from '@angular/core';
+import { ElementRef, Injectable, QueryList } from '@angular/core';
 import { DropdownsData, Select, TranslatedValues } from './interface';
 import { DropdownItemDirective } from './dropdown-item.directive';
 
@@ -27,12 +27,31 @@ export class DropdownService {
     }
   }
 
+  getListOfElements(dropdown: ElementRef) {
+    const currentIndex = this.findCurrentIndexDropdown(dropdown.nativeElement);
+    const items: string[] = [];
+
+    if (currentIndex !== -1) {
+      const children = this.dropdownsData[currentIndex].element.dropdownItems;
+
+      for (const child of children) {
+        items.push(child.native.innerText);
+      }
+    }
+
+    return items;
+  }
+
+  private findCurrentIndexDropdown(element: HTMLElement) {
+    return this.dropdownsData.findIndex(
+      (dropdown) => dropdown.element.reference.nativeElement === element
+    );
+  }
+
   private populateDropdownsData(translatedValues: TranslatedValues[]) {
     for (const translation of translatedValues) {
-      let currentIndex = this.dropdownsData.findIndex(
-        (dropdown) =>
-          dropdown.element.reference.nativeElement ===
-          translation.dropdown.nativeElement
+      const currentIndex = this.findCurrentIndexDropdown(
+        translation.dropdown.nativeElement
       );
 
       if (currentIndex !== -1) {
@@ -52,19 +71,19 @@ export class DropdownService {
     const arrayItems = dropdownContent.element.dropdownItems.toArray();
     const dropdown = dropdownContent.element;
 
+    // update title and list
+    dropdown.setDefaultsActiveItems();
+
+    // update content
     for (let i = 0; i < dropdownContent.itemsValue.length; i++) {
-      // update content
       const element = dropdownContent.itemsValue[i];
       arrayItems[i].updateValueTranslation(element);
     }
 
-    // update title
-    dropdown.titleValue = dropdownContent.title;
     // update unselect
     dropdown.dropdownMenu.unselectText =
       dropdownContent.labelUnselectOption || '';
-    dropdown.displayTitleOnTop(false);
-    dropdown.setDefaultsActiveItems();
+    dropdown.updateTitleDisplay(false);
   }
 
   private updateLabelsAndContent(dropdownContent: DropdownsData) {
@@ -80,16 +99,16 @@ export class DropdownService {
       // update labels (not at initialisation)
       const activeIndex = dropdownContent.activesIndex.indexOf(i);
       if (activeIndex !== -1) {
-        dropdown.updateDropdownTitle(element);
+        dropdown.updateTitleAndList(element);
       }
     }
 
     // update title
-    dropdown.titleValue = dropdownContent.title;
+    dropdown.updateTitleValue(dropdownContent.title);
     // update unselect
     dropdown.dropdownMenu.unselectText =
       dropdownContent.labelUnselectOption || '';
-    dropdown.displayTitleOnTop(false);
+    dropdown.updateTitleDisplay(false);
   }
 
   addActiveDropdownsAndContent(active: DropdownsData) {

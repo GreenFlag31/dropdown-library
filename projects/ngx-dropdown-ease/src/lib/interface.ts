@@ -40,6 +40,5 @@ export interface TranslatedValues {
   dropdown: ElementRef;
   title: string;
   items: string[];
-  labelMinSelection?: string;
   labelUnselectOption?: string;
 }

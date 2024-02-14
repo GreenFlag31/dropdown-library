@@ -17,20 +17,40 @@
   padding: 1rem;
   width: 10rem;
   background: #e6e6e6;
+  margin-top: 1rem;
+}
+.selection-container.orders {
+  width: 15rem;
+  padding: 0.8rem 0.6rem;
+  border-radius: 0.3rem;
+}
+.multiple-selection {
+  background-color: #00022c;
+  color: #fff;
+  padding: 2rem 1rem;
 }
 .multiple-selection,
 .habits-container {
   margin-top: 7rem;
   margin-bottom: 7rem;
 }
-.habits-container {
+.orders-container {
   margin-bottom: 20rem;
 }
+
 .multiple-selection .selection-container {
-  background: #7e0000;
+  background: #00306c;
   color: #fff;
 }
-.multiple-selection svg {
+.coding .ngx-dropdown-menu {
+  background: #00316cc1;
+  color: #fff;
+}
+.coding .ngx-dropdown-item:hover,
+.coding .ngx-unselect:hover {
+  background: #2980b9;
+}
+.coding svg {
   fill: #fff;
 }
 header button.add-star {
@@ -76,8 +96,11 @@ main {
   flex-wrap: wrap;
   margin-top: 1rem;
 }
-.multiple {
+.coding {
   margin-top: 1rem;
+}
+.coding .ngx-dropdown-item.active {
+  background: #2980b9;
 }
 .habits {
   margin-top: 2rem;

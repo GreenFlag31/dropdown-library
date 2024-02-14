@@ -10,14 +10,24 @@ import {
   QueryList,
   AfterContentInit,
   HostBinding,
+  AfterViewInit,
 } from '@angular/core';
-import { Subject, filter, fromEvent, switchMap, take, takeUntil } from 'rxjs';
+import {
+  Subject,
+  empty,
+  filter,
+  firstValueFrom,
+  fromEvent,
+  switchMap,
+  take,
+  takeUntil,
+} from 'rxjs';
 import { DropdownItemDirective } from './dropdown-item.directive';
 import { DropdownsData, Select } from './interface';
 import { DropdownService } from './dropdown.service';
 import { DropdownTitleContainerDirective } from './dropdown-title-container.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
-import { NumberSymbol } from '@angular/common';
+import { InstantiateExpr } from '@angular/compiler';
 
 @Directive({
   selector: '[ngxDropdownTitle]',
@@ -30,6 +40,14 @@ export class DropdownTitleDirective {
   get native() {
     return this.element.nativeElement;
   }
+
+  get titleContent() {
+    return this.native.innerText;
+  }
+
+  set titleContent(value: string) {
+    this.native.innerText = value;
+  }
 }
 
 @Directive({
@@ -37,10 +55,13 @@ export class DropdownTitleDirective {
   standalone: true,
   host: { class: 'ngx-dropdown' },
 })
-export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
+export class DropdownDirective
+  implements OnInit, AfterContentInit, AfterViewInit, OnDestroy
+{
   @Input() selection: Select = 'single';
   @Input() defaultTitle = '';
   @Input() disable = false;
+  @Input() searchbar = false;
 
   visibilityChange = new Subject<boolean>();
   selectionChange = new Subject<string>();
@@ -53,13 +74,17 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
   private ID = 0;
   private notifierEndSub = new Subject<void>();
   private destroy = new Subject<void>();
-  private titleIsOnTop = false;
+  private displayTitle = false;
   private pTitleOnTop!: HTMLParagraphElement;
   private titleColor = '#000';
   private defaultColor = '#000';
   private invalid = false;
   private labelMinSelection!: HTMLParagraphElement;
   private keyboardIndex = -1;
+  private arrayOfItems!: (DropdownItemDirective | HTMLElement)[];
+  private searchbarElement!: HTMLInputElement | undefined;
+  private childItems: DropdownItemDirective[] = [];
+  private paddingLeft = '';
 
   @ContentChild(DropdownTitleContainerDirective)
   dropdownTitleContainer!: DropdownTitleContainerDirective;
@@ -97,8 +122,14 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     return this.dropdownTitleContainer.selectionNumber;
   }
 
-  set titleValue(value: string) {
+  /**
+   * if no selection, update main title.
+   */
+  updateTitleValue(value: string) {
     this.defaultTitle = value;
+    if (this.listOfElements.length === 0) {
+      this.dropdownTitle.titleContent = value;
+    }
   }
 
   setInvalidDropdown(invalid: boolean) {
@@ -123,12 +154,92 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     this.dropdownService.dropdownID += 1;
   }
 
-  arrayOfItems!: (DropdownItemDirective | undefined)[];
   ngAfterContentInit() {
     this.createLabelMinNumberSelection();
     this.populateDropdownsInTheService();
     this.addTabIndex();
     this.arrayOfItems = this.dropdownItems.toArray();
+    this.displayTitle = this.dropdownMenu.displayTitleOption;
+  }
+
+  ngAfterViewInit() {
+    const computedStyle = window.getComputedStyle(this.native);
+    this.paddingLeft = computedStyle.getPropertyValue('padding-left');
+
+    this.addTitleOnTop();
+    this.createSearchbar();
+  }
+
+  private createSearchbar() {
+    if (!this.searchbar) return;
+
+    this.searchbarElement = document.createElement('input');
+    this.searchbarElement.classList.add('ngx-dropdown-searchbar');
+    this.searchbarElement.value = this.defaultTitle;
+    const dropdownNative = this.dropdownTitleContainer.native;
+    this.searchbarElement.addEventListener(
+      'input',
+      this.onSearchbarInputChange.bind(this)
+    );
+
+    this.childItems = this.dropdownItems.toArray();
+    dropdownNative.firstChild?.remove();
+    dropdownNative.prepend(this.searchbarElement);
+  }
+
+  private resetAllFielsItems() {
+    if (!this.searchbarElement) return;
+
+    this.searchbarElement.blur();
+    if (this.listOfElements.length === 0) {
+      for (const item of this.childItems) {
+        item.native.style.display = 'flex';
+      }
+    }
+  }
+
+  private onSearchbarInputChange() {
+    const searchValue = this.searchbarElement!.value.toLowerCase();
+    const children: DropdownItemDirective[] = [];
+
+    for (const item of this.childItems) {
+      const element = item.native;
+      const text = element.innerText.toLowerCase();
+
+      if (text.includes(searchValue)) {
+        children.push(item);
+        element.style.display = 'flex';
+      } else {
+        element.style.display = 'none';
+      }
+    }
+
+    if (!this.open) {
+      this.onClick();
+    }
+
+    // not displaying the unselect option while searching
+    this.dropdownMenu.changeUnselectVisibility(false);
+    this.updateElementsKeyboardSupport(children);
+    this.keyboardIndex = -1;
+  }
+
+  /**
+   * Update for keyboard support. The array contains the search results.
+   */
+  private updateElementsKeyboardSupport(items: DropdownItemDirective[]) {
+    if (!this.searchbarElement) return;
+
+    if (this.arrayOfItems[0] instanceof HTMLElement) {
+      // keep unselect option
+      this.arrayOfItems = [this.arrayOfItems[0], ...items];
+    } else {
+      this.arrayOfItems = [...items];
+    }
+  }
+
+  addUnselectToKeyboardSupport(unselectElement: HTMLElement) {
+    this.arrayOfItems.unshift(unselectElement);
   }
 
   private addTabIndex() {
@@ -181,7 +292,7 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
       const content = current.native.innerText || '';
       // styling
       current.onItemSelection();
-      this.updateDropdownTitle(content);
+      this.updateTitleAndList(content);
       this.dropdownTitleContainer.handleBadge();
 
       if (this.selection === 'single') break;
@@ -193,65 +304,117 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     this.titleColor = color;
   }
 
-  private updateTitleInnerText(
-    element: HTMLElement | undefined,
-    title: string
-  ) {
-    if (!element || element.innerText === '') return;
-    element.innerText = title;
+  updateTitleOnTop(title: string) {
+    if (!this.pTitleOnTop) return;
+    this.pTitleOnTop.innerText = title;
+  }
+
+  addTitleOnTop() {
+    if (!this.displayTitle) return;
+
+    this.pTitleOnTop = document.createElement('p');
+    this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
+    this.pTitleOnTop.style.color = this.titleColor;
+    this.dropdownTitle.native.style.minHeight =
+      this.dropdownTitle.native.clientHeight + 'px';
+
+    this.element.nativeElement.prepend(this.pTitleOnTop);
   }
 
   /**
-   * In case of translation and zero active items, update the title or the paragraph (the title on top).
+   * In case of translation and zero active items, update the title on top.
    */
-  displayTitleOnTop(animation = true) {
-    if (this.listOfElements.length === 0) {
-      this.updateTitleInnerText(this.dropdownTitle.native, this.defaultTitle);
-    }
-    this.updateTitleInnerText(this.pTitleOnTop, this.defaultTitle);
+  updateTitleDisplay(animation = true) {
+    if (!this.displayTitle) return;
 
-    if (
-      this.dropdownService.getDropdown(this.ID).activesIndex.length === 0 &&
-      !this.open
-    ) {
+    // from translation service
+    if (this.listOfElements.length === 0 && !this.open) {
       return;
     }
 
-    if (!this.pTitleOnTop) {
-      this.pTitleOnTop = document.createElement('p');
-      this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
-      this.pTitleOnTop.style.color = this.titleColor;
-      this.dropdownTitle.native.style.minHeight =
-        this.dropdownTitle.native.clientHeight + 'px';
-      this.dropdownTitle.native.innerText = '';
-      this.element.nativeElement.prepend(this.pTitleOnTop);
-    }
-
     this.pTitleOnTop.innerText = this.defaultTitle;
-    this.pTitleOnTop.style.color = this.titleColor;
-    this.titleIsOnTop = true;
 
-    this.pTitleOnTop.style.animation = `to-right-title ${
-      animation ? '0.3s' : ''
-    } forwards`;
+    const keyframes = [{ left: '-5px' }, { left: this.paddingLeft }];
+    const options: KeyframeAnimationOptions = {
+      duration: animation ? 200 : 0,
+      fill: 'forwards',
+      easing: 'ease-out',
+    };
+
+    this.pTitleOnTop.animate(keyframes, options);
+  }
+
+  /**
+   * If the menu is closed, show back the selected elements
+   */
+  private displaySelectedItemInSearchbar() {
+    if (this.searchbarElement) {
+      this.searchbarElement.value = [...this.listOfElements]
+        .reverse()
+        .join(', ');
+    }
+  }
+
+  private displaySelectedItemInTitle() {
+    this.dropdownTitle.native.innerText = [...this.listOfElements]
+      .reverse()
+      .join(', ');
+  }
+
+  /**
+   * In case of searchbar, display back all items.
+   */
+  private displayAllItems() {
+    for (const item of this.childItems) {
+      item.native.style.display = 'flex';
+    }
+  }
+
+  private emptySearchbarIfSameElements() {
+    if (this.searchbarElement?.value) {
+      this.searchbarElement.value = '';
+    }
+  }
+
+  private toggleDisplayBadge(shouldHide: boolean) {
+    const badge =
+      this.dropdownTitleContainer.native.querySelector<HTMLSpanElement>(
+        '.ngx-badge'
+      );
+
+    if (badge) {
+      badge.style.display = shouldHide ? 'none' : 'block';
+    }
   }
 
   private onItemSelection() {
     this.visibilityChange.pipe(takeUntil(this.destroy)).subscribe((visible) => {
       this.open = visible;
+      this.displayAllItems();
+      this.toggleDisplayBadge(visible);
 
-      if (visible && !this.titleIsOnTop) {
-        this.displayTitleOnTop();
-      } else if (!visible && this.titleIsOnTop) {
-        if (this.dropdownService.getDropdown(this.ID).activesIndex.length > 0) {
+      if (!this.displayTitle) return;
+
+      if (visible) {
+        this.dropdownTitle.native.innerText = '';
+        this.emptySearchbarIfSameElements();
+        this.updateTitleDisplay();
+      } else {
+        this.searchbarElement?.blur();
+        this.removeClassActiveItem();
+
+        if (this.listOfElements.length > 0) {
+          this.displaySelectedItemInSearchbar();
+          this.displaySelectedItemInTitle();
           return;
         }
 
-        const title = this.element.nativeElement
-          .firstChild as HTMLParagraphElement;
-        title.style.animation = '';
-        title.style.color = this.defaultColor;
-        this.titleIsOnTop = false;
+        if (this.searchbarElement) {
+          this.searchbarElement.value = this.defaultTitle;
+        }
+
+        this.dropdownTitle.titleContent = this.defaultTitle;
+        this.pTitleOnTop.innerText = '';
       }
     });
   }
@@ -260,9 +423,34 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     this.selectionChange
       .pipe(takeUntil(this.destroy))
       .subscribe((selection) => {
-        this.updateDropdownTitle(selection);
+        this.updateTitleAndList(selection);
         this.updateActiveIndexService(selection);
+        this.resetToDefaultTitle();
+        this.displayAllItems();
+        this.updateElementsKeyboardSupport(this.childItems);
+        this.toggleDisplayBadge(false);
       });
+  }
+
+  private removeClassActiveItem() {
+    this.keyboardIndex = -1;
+
+    for (const item of this.arrayOfItems) {
+      if (item instanceof HTMLElement) {
+        item.classList.remove('active');
+      } else {
+        item.activation = false;
+      }
+    }
+  }
+
+  /**
+   * if option of disabling the title
+   */
+  resetToDefaultTitle() {
+    if (!this.displayTitle && this.listOfElements.length === 0) {
+      this.dropdownTitle.titleContent = this.defaultTitle;
+    }
   }
 
   private updateActiveIndexService(selection: string) {
@@ -277,10 +465,7 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     );
   }
 
-  updateDropdownTitle(selection: string) {
-    const dropdownTitle = this.dropdownTitle.native;
-    dropdownTitle.innerText = '';
-
+  updateTitleAndList(selection: string) {
     if (this.selection === 'multiple') {
       if (this.listOfElements.includes(selection)) {
         this.listOfElements.splice(this.listOfElements.indexOf(selection), 1);
@@ -295,13 +480,22 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
       }
     }
 
-    dropdownTitle.innerText = this.listOfElements.reverse().join(', ');
-    dropdownTitle.title = dropdownTitle.innerText;
+    const elementsReversed = [...this.listOfElements].reverse().join(', ');
+
+    if (this.searchbarElement) {
+      this.searchbarElement.value = elementsReversed;
+      this.searchbarElement.title = elementsReversed;
+    }
+    this.dropdownTitle.titleContent = elementsReversed;
+    this.dropdownTitle.native.title = elementsReversed;
   }
 
-  @HostListener('click', ['$event'])
+  @HostListener('click', ['$event.currentTarget'])
   onClick() {
     if (this.disable) return;
+    if (this.searchbarElement) {
+      this.searchbarElement.focus();
+    }
     this.open = !this.open;
     this.visibilityChange.next(this.open);
   }
@@ -315,6 +509,13 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
   @HostListener('keydown.arrowup', ['$event'])
   onArrowUpKey(event: Event) {
     event.preventDefault();
+
+    if (this.keyboardIndex === 0 && this.searchbarElement) {
+      this.searchbarElement.focus();
+      this.searchbarElement.value = '';
+      this.removeClassActiveItem();
+    }
+
     if (this.keyboardIndex > 0) {
       this.keyboardIndex -= 1;
       this.keyboardNavigation();
@@ -324,6 +525,10 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
   @HostListener('keydown.arrowdown', ['$event'])
   onArrowDownKey(event: Event) {
     event.preventDefault();
+    if (this.keyboardIndex === 0 && this.dropdownMenu.unselectOption) {
+      (this.arrayOfItems[0] as HTMLElement).classList.remove('active');
+    }
+
     if (this.currentIndexKeyboardItem(this.keyboardIndex + 1)) {
       this.keyboardIndex += 1;
       this.keyboardNavigation();
@@ -334,25 +539,34 @@ export class DropdownDirective implements OnInit, AfterContentInit, OnDestroy {
     return this.arrayOfItems[index];
   }
 
-  keyboardNavigation() {
-    const current = this.currentIndexKeyboardItem(this.keyboardIndex);
+  /**
+   * Handle keyboard navigation, put focus and class on active element.
+   */
+  private keyboardNavigation() {
     const prev = this.currentIndexKeyboardItem(this.keyboardIndex - 1);
+    const current = this.currentIndexKeyboardItem(this.keyboardIndex);
     const next = this.currentIndexKeyboardItem(this.keyboardIndex + 1);
 
-    if (prev) {
+    if (prev && prev instanceof DropdownItemDirective) {
       prev.activation = false;
     }
-    if (next) {
+    if (next && next instanceof DropdownItemDirective) {
       next.activation = false;
     }
 
-    current!.activation = true;
-    current!.native.focus();
+    if (current instanceof DropdownItemDirective) {
+      current.activation = true;
+      current.native.focus();
+    } else {
+      current.classList.add('active');
+      current.focus();
+    }
   }
 
   @HostListener('keydown.escape', ['$event'])
   onEscape() {
     this.onClick();
+    this.resetAllFielsItems();
   }
 
   @HostListener('document:click')

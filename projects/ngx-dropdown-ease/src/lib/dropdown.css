@@ -3,7 +3,6 @@
   cursor: pointer;
   user-select: none;
   padding: 1rem;
-  clip-path: inset(-100vw -100vw -100vw -2px);
 }
 .ngx-dropdown.ngx-disabled-dropdown {
   cursor: not-allowed;
@@ -43,7 +42,6 @@ span.ngx-badge {
 .ngx-dropdown-menu {
   position: absolute;
   top: 105%;
-  width: 160px;
   left: 0;
   overflow: hidden;
   width: 100%;
@@ -69,22 +67,10 @@ span.ngx-badge {
 }
 .ngx-dropdown-title-top {
   position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 5%;
+  font-size: 75%;
 }
 
-@keyframes to-right-title {
-  from {
-    top: 20%;
-    left: -50%;
-    font-size: 75%;
-  }
-  to {
-    top: 20%;
-    left: 10%;
-    font-size: 75%;
-  }
-}
 .ngx-dropdown-title {
   font-weight: 500;
   overflow: hidden;
@@ -92,7 +78,8 @@ span.ngx-badge {
   white-space: nowrap;
   max-width: 85%;
 }
-.ngx-dropdown-item {
+.ngx-dropdown-item,
+.ngx-unselect {
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -129,21 +116,34 @@ span.ngx-badge {
   }
 }
 
-.ngx-dropdown-item:focus {
+.ngx-dropdown-item:focus,
+.ngx-unselect:focus {
   outline: none;
 }
 
-.ngx-dropdown-item.active {
+.ngx-dropdown-item.active,
+.ngx-unselect.active {
   background: #f6f6f6;
 }
 
-.ngx-dropdown-item:hover {
+.ngx-dropdown-item:hover,
+.ngx-unselect:hover {
   background: #f6f6f6;
 }
 
 .ngx-dropdown-icon {
   transition: 0.3s;
   transform: rotate(0);
+}
+
+.ngx-dropdown-searchbar {
+  background: inherit;
+  color: inherit;
+  outline: none;
+  border: none;
+  font-size: 0.9rem;
+  padding: 0.3rem 0;
+  cursor: pointer;
 }
 
 @keyframes going-down {

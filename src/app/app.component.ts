@@ -1,10 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  ElementRef,
-  OnInit,
-  ViewChild,
-} from '@angular/core';
+import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { DropdownModule } from '../../projects/ngx-dropdown-ease/src/public-api';
@@ -19,10 +13,10 @@ import { TranslatedValues } from '../../projects/ngx-dropdown-ease/src/lib/inter
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
-export class AppComponent implements OnInit, AfterViewInit {
-  @ViewChild('RBGA') RBGA!: ElementRef;
-  @ViewChild('language') language!: ElementRef;
-  @ViewChild('habits') habits!: ElementRef;
+export class AppComponent implements AfterViewInit {
+  @ViewChild('RBGA') RBGA!: ElementRef<HTMLElement>;
+  @ViewChild('language') language!: ElementRef<HTMLElement>;
+  @ViewChild('habits') habits!: ElementRef<HTMLElement>;
 
   countries = [
     {
@@ -44,27 +38,22 @@ export class AppComponent implements OnInit, AfterViewInit {
     private dropdownService: DropdownService
   ) {}
 
-  ngOnInit() {
+  ngAfterViewInit() {
     // Initialisation
     this.translateService.onDefaultLangChange.subscribe(() => {
-      this.translateDropdowns();
+      this.dropdownService.initialise(this.dropdownsData());
     });
 
     // Changing language at runtime
     this.translateService.onLangChange.subscribe(() => {
-      this.updateDropdowns();
+      this.dropdownService.update(this.dropdownsData());
     });
   }
 
-  translateDropdowns() {
-    this.dropdownService.initialise(this.dropdownsData());
-  }
-
-  updateDropdowns() {
-    this.dropdownService.update(this.dropdownsData());
-  }
-
   dropdownsData() {
+    const languageItems = this.dropdownService.getListOfElements(this.language);
+    // console.log(languageItems);
+
     const languagesData: TranslatedValues = {
       dropdown: this.language,
       title: this.translateService.instant('Language'),
@@ -96,8 +85,6 @@ export class AppComponent implements OnInit, AfterViewInit {
 
     return [languagesData, colorsData, habitsData];
   }
-
-  ngAfterViewInit() {}
 
   onLanguageChange(language: string) {
     if (language === 'French') {

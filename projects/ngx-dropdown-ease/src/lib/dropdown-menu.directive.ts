@@ -35,6 +35,7 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
   @Input() minNumberElementsToSelect = 0;
   @Input() iconSelection: 'check' | StyleSelection = 'check';
   @Input() iconColor = 'green';
+  @Input() displayTitle = true;
 
   private heightOfContent = 0;
   private open = false;
@@ -62,6 +63,14 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     return this.iconColor;
   }
 
+  get displayTitleOption() {
+    return this.displayTitle;
+  }
+
+  get unselectionOption() {
+    return this.unselectOption;
+  }
+
   get minNumberElementsSelection() {
     return this.minNumberElementsToSelect;
   }
@@ -75,7 +84,14 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     this.unselect.innerText = value;
   }
 
+  changeUnselectVisibility(visible: boolean) {
+    if (this.unselect) {
+      this.unselect.style.display = visible ? 'flex' : 'none';
+    }
+  }
+
   /**
+   * In case of minimum selection
    * Validate dropdown on basis of a minimum number of elements to select.
    */
   private validateDropdown() {
@@ -102,11 +118,12 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
         return;
       }
 
-      this.heightOfContent = this.computeHeightContent();
+      this.refreshHeightContent();
       this.positionMenuCorrection();
 
       if (this.animation !== 'none') {
         this.element.nativeElement.style.animation = '';
+        // reflow
         this.element.nativeElement.getBoundingClientRect();
         this.element.nativeElement.style.animation = this.animation;
       }
@@ -115,6 +132,17 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     if (this.animation === 'expand') {
       this.element.nativeElement.style.transition = `${this.animationTimingMs}ms ${this.animationTimingFn}`;
     }
+  }
+
+  ngAfterViewInit() {
+    if (this.unselectOption) {
+      this.addUnselectOption();
+      this.dropdown.addUnselectToKeyboardSupport(this.unselect);
+    }
+  }
+
+  refreshHeightContent() {
+    this.heightOfContent = this.computeHeightContent();
   }
 
   positionMenuCorrection() {
@@ -139,16 +167,10 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     }
   }
 
-  ngAfterViewInit() {
-    if (this.unselectOption) {
-      this.addUnselectOption();
-    }
-  }
-
   private addUnselectOption() {
     this.element.nativeElement.insertAdjacentHTML(
       'afterbegin',
-      '<div class="ngx-unselect ngx-dropdown-item"><p>Unselect</p></div>'
+      '<p class="ngx-unselect">Unselect</p>'
     );
     this.unselect =
       this.element.nativeElement.querySelector<HTMLDivElement>(
@@ -165,10 +187,17 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
         this.unselectOptionStyle['fontWeight'] || '';
     }
 
+    this.unselect.tabIndex = 0;
+
     this.unselect.addEventListener('click', this.onUnselectClick.bind(this));
+    this.unselect.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        this.onUnselectClick(event);
+      }
+    });
   }
 
-  private onUnselectClick(e: MouseEvent) {
+  private onUnselectClick(e: MouseEvent | KeyboardEvent) {
     e.stopPropagation();
 
     const selected =
@@ -181,34 +210,40 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     this.dropdown.native.querySelector('.ngx-badge')?.remove();
 
     this.dropdown.clearListOfElements();
+    this.dropdown.resetToDefaultTitle();
     this.dropdownService.clearActiveIndexCurrentDropdown(
       this.dropdown.dropdownID
     );
-  }
-
-  private firstElementHeight() {
-    return this.dropdownItems.first.height;
   }
 
   private numberOfElements() {
     return this.dropdownItems.length;
   }
 
+  private computeTotalHeight(
+    occurence = this.numberOfElements(),
+    elements = this.dropdownItems
+  ) {
+    const maximum = Math.min(occurence, this.elementsVisible);
+    const items = elements.toArray().slice(0, maximum);
+
+    return items.reduce((acc, current) => {
+      return acc + current.native.clientHeight;
+    }, 0);
+  }
+
   private computeHeightContent() {
+    if (this.heightOfContent) return this.heightOfContent;
+
     const extraSpaceUnselect = this.unselectOption
       ? this.unselect.clientHeight
       : 0;
 
     if (this.elementsVisible < this.numberOfElements()) {
       this.native.style.overflow = 'auto';
-      return (
-        this.firstElementHeight() * this.elementsVisible + extraSpaceUnselect
-      );
     }
 
-    return (
-      this.firstElementHeight() * this.numberOfElements() + extraSpaceUnselect
-    );
+    return this.computeTotalHeight() + extraSpaceUnselect;
   }
 
   @HostBinding('style.maxHeight')
