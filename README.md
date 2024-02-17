@@ -35,8 +35,8 @@ This library consists in a set of directives to apply in the template containing
   <div
     ngxDropdownTitleContainer
     iconColor="#000"
-    titleColor="red"
-    defaultTitleColor="#000"
+    mainTitleColor="#000"
+    secondarytitleColor="red"
   >
     <h4 ngxDropdownTitle>Ingredients</h4>
   </div>
@@ -51,27 +51,27 @@ This library consists in a set of directives to apply in the template containing
 </div>
 ```
 
-| Directive                 | Option                    | Default  | Description                                                                                          |
-| ------------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
-| ngxDropdown               | selection                 | single   | Selection behavior of the dropdown. Accept 'single' or 'multiple'.                                   |
-| ngxDropdown               | disable                   | false    | Disable the dropdown.                                                                                |
-| ngxDropdown               | searchbar                 | false    | Enable a searchbar in the dropdown.                                                                  |
-| ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number.                                              |
-| ngxDropdownTitleContainer | icon                      | true     | Display the icon in the title.                                                                       |
-| ngxDropdownTitleContainer | iconColor                 | #000     | Set the color or the title icon.                                                                     |
-| ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                     |
-| ngxDropdownTitleContainer | secondaryTitle            | true     | Display the secondary title.                                                                         |
-| ngxDropdownTitleContainer | secondarytitleColor       | #000     | Set the color of the secondary title.                                                                |
-| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening. Accept 'bottom' or 'top'.                               |
-| ngxDropdownMenu           | defaultActiveItems        | []       | An array containing indexes of the default active items.                                             |
-| ngxDropdownMenu           | elementsVisible           | Infinity | The number of element that will be visible at opening. A scroll bar will appear.                     |
-| ngxDropdownMenu           | animation                 | none     | Define the opening animation. See build-in animation [here](#build-in).                              |
-| ngxDropdownMenu           | animationTimingMs         | 300      | Set the duration of the opening animation in ms.                                                     |
-| ngxDropdownMenu           | animationTimingFn         | ease     | Set the timing function for opening animation.                                                       |
-| ngxDropdownMenu           | minNumberElementsToSelect | 0        | Define a minimum number of elements to select. A label on top of the dropdown will appear.           |
-| ngxDropdownMenu           | iconSelection             | check    | Define the item style at selection. Choose between a check mark or custom style of `StyleSelection`. |
-| ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                  |
-| ngxDropdownItem           | disable                   | false    | Disable the item for selection.                                                                      |
+| Directive                 | Option                    | Default  | Description                                                                                                      |
+| ------------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ----------- | ---------- | ------------ | --- |
+| ngxDropdown               | selection                 | single   | Selection behavior of the dropdown. Value: 'single'                                                              | 'multiple'. |
+| ngxDropdown               | disable                   | false    | Disable the dropdown.                                                                                            |
+| ngxDropdown               | searchbar                 | false    | Enable a searchbar in the dropdown.                                                                              |
+| ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number.                                                          |
+| ngxDropdownTitleContainer | icon                      | true     | Display the icon in the title.                                                                                   |
+| ngxDropdownTitleContainer | iconColor                 | #000     | Set the color or the title icon.                                                                                 |
+| ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                                 |
+| ngxDropdownTitleContainer | secondaryTitle            | true     | Display the secondary title.                                                                                     |
+| ngxDropdownTitleContainer | secondarytitleColor       | #000     | Set the color of the secondary title.                                                                            |
+| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening. Value: 'bottom'                                                     | 'top'.      |
+| ngxDropdownMenu           | defaultActiveItems        | []       | An array containing indexes of the default active items.                                                         |
+| ngxDropdownMenu           | elementsVisible           | Infinity | The maximum number of element that should be visible at opening. A scroll bar will appear if necessary.          |
+| ngxDropdownMenu           | animation                 | none     | Define the opening animation. See build-in animation [here](#build-in).                                          |
+| ngxDropdownMenu           | animationTimingMs         | 300      | Set the duration of the opening animation in ms.                                                                 |
+| ngxDropdownMenu           | animationTimingFn         | ease     | Set the timing function for opening animation. Value: 'ease'                                                     | 'ease-in'   | 'ease-out' | cubic-bezier | ... |
+| ngxDropdownMenu           | minNumberElementsToSelect | 0        | Define a minimum number of elements to select. A label on top of the dropdown will appear.                       |
+| ngxDropdownMenu           | iconSelection             | check    | Define the item style at selection. Choose between a check mark or custom style respecting the `StyleSelection`. |
+| ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                              |
+| ngxDropdownItem           | disable                   | false    | Disable the item for selection.                                                                                  |
 
 ```
 StyleSelection {
@@ -126,8 +126,10 @@ dropdownsData() {
   const colorsData: TranslatedValues = {
     <!-- @ViewChild ElementRef -->
     dropdown: this.RBGA,
+
     <!-- Title text content -->
     title: this.translateService.instant('Colors'),
+
     <!-- Items text content (same as the HTML order) -->
     items: [
       this.translateService.instant('Red'),
@@ -145,7 +147,7 @@ Provide an object respecting following interface:
 
 ```
 interface TranslatedValues {
-  <!-- The element ref that you attached to the ngxDropdown directive  -->
+  <!-- The @ViewChild ElementRef that you attached to the ngxDropdown directive  -->
   dropdown: ElementRef;
   <!-- The ngxDropdownTitle title text content -->
   title: string;
@@ -154,15 +156,20 @@ interface TranslatedValues {
 }
 ```
 
-If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the translation method of your third party translation library (here, `this.translateService.instant(value)`). This method should be synchronous.
+If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the translation method of your translation library (here, `this.translateService.instant(value)`). This method should be synchronous.
 
-This requires an extra step, but this is by far the cleanest solution to handle a third party asynchronous library.
+This requires an extra step, but this is by far the cleanest solution to handle an asynchronous third party library.
 
 <a id="build-in"></a>
 
 # Ready-to-use animations keyframes
 
-This library comes with build-in and ready-to-use animations keyframes to animate the opening menu. Just fill in the `name`, `duration` and `easing function` (more info on the `animation CSS shorthand` [here](https://developer.mozilla.org/en-US/docs/Web/CSS/animation)). Of course, you can create your own keyframes too.
+This library comes with build-in and ready-to-use animations keyframes to animate the opening menu. Just fill in the `name`, `duration` and `easing function` (more info on the `animation CSS shorthand` [here](https://developer.mozilla.org/en-US/docs/Web/CSS/animation)).
+
+You have the choice for the opening menu animation between 'none' | 'expand' | any following build-in animations | or creating your own keyframes. Dropdowns automatically adjust their
+opening position if there is not enough space for the items to be
+displayed. If you use built-in animations, they will be adjusted
+accordingly to ensure that the effect remains consistent.
 
 ```
 @keyframes going-down {
@@ -226,6 +233,21 @@ This library comes with build-in and ready-to-use animations keyframes to animat
   }
 }
 ```
+
+# Style customisation
+
+This library offers a basic style customisation API. A class based CSS approach has been favored, so you can _almost_ style everything. Directives attached to the DOM do not cause style encapsulation, so you can style the corresponding classes in the styling sheet of the hosting component (no need of `ViewEncapsulation.None`) as you would normally do for any html element. Find the corresponding classes by inspecting the DOM.
+
+Following example modifies the menu:
+
+```
+.coding .ngx-dropdown-menu {
+  background: #00316cc1;
+  color: #fff;
+}
+```
+
+Classes have been prefixed with ngx-dropdown-\*.
 
 # Accessibility
 
