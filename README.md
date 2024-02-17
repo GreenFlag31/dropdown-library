@@ -52,8 +52,8 @@ This library consists in a set of directives to apply in the template containing
 ```
 
 | Directive                 | Option                    | Default  | Description                                                                                                      |
-| ------------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| ngxDropdown               | selection                 | single   | Selection behavior of the dropdown.                                                                              | Value: 'single' or 'multiple'                           |
+| ------------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| ngxDropdown               | selection                 | single   | Selection behavior of the dropdown. Value: 'single' or 'multiple'                                                |
 | ngxDropdown               | disable                   | false    | Disable the dropdown.                                                                                            |
 | ngxDropdown               | searchbar                 | false    | Enable a searchbar in the dropdown.                                                                              |
 | ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number.                                                          |
@@ -62,12 +62,12 @@ This library consists in a set of directives to apply in the template containing
 | ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                                 |
 | ngxDropdownTitleContainer | secondaryTitle            | true     | Display the secondary title.                                                                                     |
 | ngxDropdownTitleContainer | secondarytitleColor       | #000     | Set the color of the secondary title.                                                                            |
-| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening.                                                                     | Value: 'bottom' or 'top'.                               |
+| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening. Value: 'bottom' or 'top'.                                           |
 | ngxDropdownMenu           | defaultActiveItems        | []       | An array containing indexes of the default active items.                                                         |
 | ngxDropdownMenu           | elementsVisible           | Infinity | The maximum number of element that should be visible at opening. A scroll bar will appear if necessary.          |
 | ngxDropdownMenu           | animation                 | none     | Define the opening animation. See build-in animation [here](#build-in).                                          |
 | ngxDropdownMenu           | animationTimingMs         | 300      | Set the duration of the opening animation in ms.                                                                 |
-| ngxDropdownMenu           | animationTimingFn         | ease     | Set the timing function for opening animation.                                                                   | Value: 'ease', 'ease-in', 'ease-out', cubic-bezier, ... |
+| ngxDropdownMenu           | animationTimingFn         | ease     | Set the timing function for opening animation. Value: 'ease', 'ease-in', 'ease-out', cubic-bezier, ...           |
 | ngxDropdownMenu           | minNumberElementsToSelect | 0        | Define a minimum number of elements to select. A label on top of the dropdown will appear.                       |
 | ngxDropdownMenu           | iconSelection             | check    | Define the item style at selection. Choose between a check mark or custom style respecting the `StyleSelection`. |
 | ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                              |
