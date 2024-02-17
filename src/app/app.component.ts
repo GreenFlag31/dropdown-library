@@ -21,7 +21,7 @@ import { DropdownService } from '../../projects/ngx-dropdown-ease/src/lib/dropdo
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements AfterViewInit {
-  @ViewChild('RBGA') RBGA!: ElementRef<HTMLElement>;
+  @ViewChild('RGBA') RGBA!: ElementRef<HTMLElement>;
   @ViewChild('language') language!: ElementRef<HTMLElement>;
   @ViewChild('habits') habits!: ElementRef<HTMLElement>;
   @ViewChild('ingredients') ingredients!: ElementRef<HTMLElement>;
@@ -73,7 +73,7 @@ export class AppComponent implements AfterViewInit {
       ],
     };
     const colorsData: TranslatedValues = {
-      dropdown: this.RBGA,
+      dropdown: this.RGBA,
       title: this.translateService.instant('Colors'),
       items: [
         this.translateService.instant('Red'),

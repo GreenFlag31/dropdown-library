@@ -77,6 +77,7 @@ export class DropdownDirective
   private childItems: DropdownItemDirective[] = [];
   private paddingLeft = '';
   private scrollIndex = 0;
+  private secondaryTitleAnimation = true;
 
   @ContentChild(DropdownTitleContainerDirective)
   dropdownTitleContainer!: DropdownTitleContainerDirective;
@@ -128,6 +129,8 @@ export class DropdownDirective
     this.itemsKeyboardNav = this.dropdownItems.toArray();
     this.childItems = this.dropdownItems.toArray();
     this.displayTitle = this.dropdownTitleContainer.displayTitleOption;
+    this.secondaryTitleAnimation =
+      this.dropdownTitleContainer.animationSecondaryTitle;
   }
 
   /**
@@ -188,7 +191,7 @@ export class DropdownDirective
   }
 
   /**
-   * If no selection, update main title.
+   * If no selection, update the main title.
    */
   updateTitleValue(value: string) {
     this.defaultTitle = value;
@@ -264,11 +267,7 @@ export class DropdownDirective
       }
     }
 
-    if (!this.open) {
-      this.onClick();
-    }
-
-    this.itemsKeyboardNav = [...children];
+    this.itemsKeyboardNav = children;
     this.keyboardIndex = -1;
   }
 
@@ -305,9 +304,10 @@ export class DropdownDirective
 
   updateSearchbarValue() {
     if (this.searchbarElement) {
-      const selected = [...this.listOfElements].reverse().join(', ');
-      this.searchbarElement.value = selected || this.defaultTitle;
-      this.searchbarElement.title = selected || this.defaultTitle;
+      const text =
+        [...this.listOfElements].reverse().join(', ') || this.defaultTitle;
+      this.searchbarElement.value = text;
+      this.searchbarElement.title = text;
     }
   }
 
@@ -324,7 +324,7 @@ export class DropdownDirective
   /**
    * In case of translation and zero active items, update the title on top.
    */
-  updateTitleDisplay(animation = true) {
+  updateTitleDisplay(animation = this.secondaryTitleAnimation) {
     if (!this.displayTitle) return;
 
     // from translation service
@@ -345,10 +345,11 @@ export class DropdownDirective
   }
 
   private displaySelectedItemInTitle() {
-    const selected = [...this.listOfElements].reverse().join(', ');
+    const text =
+      [...this.listOfElements].reverse().join(', ') || this.defaultTitle;
 
-    this.dropdownTitle.native.innerText = selected || this.defaultTitle;
-    this.dropdownTitle.native.title = selected || this.defaultTitle;
+    this.dropdownTitle.native.innerText = text;
+    this.dropdownTitle.native.title = text;
   }
 
   /**
@@ -472,10 +473,10 @@ export class DropdownDirective
       }
     }
 
-    const elementsReversed = [...this.listOfElements].reverse().join(', ');
+    const selectionReversed = [...this.listOfElements].reverse().join(', ');
 
-    this.dropdownTitle.titleContent = elementsReversed;
-    this.dropdownTitle.native.title = elementsReversed;
+    this.dropdownTitle.titleContent = selectionReversed;
+    this.dropdownTitle.native.title = selectionReversed;
   }
 
   @HostListener('click', ['$event.currentTarget'])

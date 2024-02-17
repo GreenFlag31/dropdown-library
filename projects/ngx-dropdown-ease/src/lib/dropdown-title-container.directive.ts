@@ -28,6 +28,7 @@ export class DropdownTitleContainerDirective
   @Input() secondaryTitle = true;
   @Input() mainTitleColor = '#000';
   @Input() secondarytitleColor = '#000';
+  @Input() secondaryTitleAnimation = true;
 
   private elementsSelected = 0;
   private destroy = new Subject<void>();
@@ -57,6 +58,10 @@ export class DropdownTitleContainerDirective
     return this.secondaryTitle;
   }
 
+  get animationSecondaryTitle() {
+    return this.secondaryTitleAnimation;
+  }
+
   ngOnInit() {
     this.span = document.createElement('span');
     this.span.classList.add('ngx-badge');
@@ -79,6 +84,7 @@ export class DropdownTitleContainerDirective
   handleBadge() {
     this.elementsSelected = this.numberOfItems();
 
+    // pas de badge avec searchbar?
     if (!this.badge || this.dropdown.searchbar) return;
 
     if (this.elementsSelected > 1) {
