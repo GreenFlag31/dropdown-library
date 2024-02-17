@@ -11,7 +11,6 @@ import {
   AfterContentInit,
   HostBinding,
   AfterViewInit,
-  ChangeDetectionStrategy,
   ChangeDetectorRef,
 } from '@angular/core';
 import { Subject, filter, fromEvent, switchMap, take, takeUntil } from 'rxjs';
@@ -51,7 +50,6 @@ export class DropdownDirective
   implements OnInit, AfterContentInit, AfterViewInit, OnDestroy
 {
   @Input() selection: Select = 'single';
-  @Input() defaultTitle = '';
   @Input() disable = false;
   @Input() searchbar = false;
 
@@ -68,6 +66,7 @@ export class DropdownDirective
   private destroy = new Subject<void>();
   private displayTitle = false;
   private pTitleOnTop!: HTMLParagraphElement;
+  private defaultTitle = '';
   private titleColor = '#000';
   private defaultColor = '#000';
   private invalid = false;
