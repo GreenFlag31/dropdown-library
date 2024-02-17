@@ -9,6 +9,7 @@
       accordingly to ensure that the effect remains consistent. All dropdowns
       are keyboard accessible.
     </p>
+    <button (click)="getAllDropdowns()">Get All DD</button>
     <button class="add-star">
       <a href="https://github.com/GreenFlag31/dropdown-library" target="_blank">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="24 0 528 512">
@@ -96,7 +97,7 @@
         </div>
         <div
           ngxDropdownMenu
-          animation="going-down 0.3s"
+          animation="scale-up-bottom 0.3s"
           position="top"
           iconColor="#fff"
         >
@@ -113,7 +114,7 @@
       <h2 class="dropdown-main-title">Minimum number of items to select</h2>
       <p>
         Multiple selection dropdown with a minimum number of items to select,
-        unselect option, and the content is translated.
+        and the content is translated.
       </p>
       <div
         ngxDropdown
@@ -134,8 +135,6 @@
           animation="none"
           [minNumberElementsToSelect]="2"
           iconColor="darkblue"
-          [unselectOption]="true"
-          [unselectOptionStyle]="{ fontWeight: '600' }"
         >
           <p ngxDropdownItem>Wake up</p>
           <p ngxDropdownItem>Code</p>
@@ -149,13 +148,19 @@
       <h2 class="dropdown-main-title">Searchbar</h2>
       <p>
         Multiple selection with a searchbar, no translation, 5 elements max
-        visible. Pizza party! 🍕
+        visible.
+      </p>
+      <p>
+        Navigate with the keyboard arrows <span>&#9650;</span
+        ><span>&#9660;</span> to select an element. Press enter to select,
+        escape to leave. Pizza party! 🍕
       </p>
       <div
         ngxDropdown
         selection="multiple"
         [searchbar]="true"
         class="selection-container orders"
+        #ingredients
       >
         <div
           ngxDropdownTitleContainer
@@ -167,6 +172,7 @@
         </div>
         <div ngxDropdownMenu animation="none" [elementsVisible]="5">
           <p ngxDropdownItem>Pepperoni</p>
+          <p ngxDropdownItem>Mozzarella</p>
           <p ngxDropdownItem>Mushrooms</p>
           <p ngxDropdownItem>Chicken</p>
           <p ngxDropdownItem>Onions</p>
@@ -176,6 +182,10 @@
           <p ngxDropdownItem>Spinach</p>
           <p ngxDropdownItem>Jalapenos</p>
           <p ngxDropdownItem>Anchovies</p>
+          <p ngxDropdownItem>Basil</p>
+          <p ngxDropdownItem>Artichokes</p>
+          <p ngxDropdownItem>Capers</p>
+          <p ngxDropdownItem>Zucchini</p>
         </div>
       </div>
     </section>

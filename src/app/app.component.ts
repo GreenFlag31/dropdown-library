@@ -1,10 +1,16 @@
-import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet } from '@angular/router';
 import { DropdownModule } from '../../projects/ngx-dropdown-ease/src/public-api';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { DropdownService } from '../../projects/ngx-dropdown-ease/src/lib/dropdown.service';
 import { TranslatedValues } from '../../projects/ngx-dropdown-ease/src/lib/interface';
+import { DropdownService } from '../../projects/ngx-dropdown-ease/src/lib/dropdown.service';
 
 @Component({
   selector: 'app-root',
@@ -12,11 +18,13 @@ import { TranslatedValues } from '../../projects/ngx-dropdown-ease/src/lib/inter
   imports: [CommonModule, RouterOutlet, DropdownModule, TranslateModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AppComponent implements AfterViewInit {
   @ViewChild('RBGA') RBGA!: ElementRef<HTMLElement>;
   @ViewChild('language') language!: ElementRef<HTMLElement>;
   @ViewChild('habits') habits!: ElementRef<HTMLElement>;
+  @ViewChild('ingredients') ingredients!: ElementRef<HTMLElement>;
 
   countries = [
     {
@@ -38,6 +46,11 @@ export class AppComponent implements AfterViewInit {
     private dropdownService: DropdownService
   ) {}
 
+  getAllDropdowns() {
+    const all = this.dropdownService.getDropdowns();
+    console.log(all);
+  }
+
   ngAfterViewInit() {
     // Initialisation
     this.translateService.onDefaultLangChange.subscribe(() => {
@@ -51,9 +64,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   dropdownsData() {
-    const languageItems = this.dropdownService.getListOfElements(this.language);
-    // console.log(languageItems);
-
     const languagesData: TranslatedValues = {
       dropdown: this.language,
       title: this.translateService.instant('Language'),
@@ -80,7 +90,6 @@ export class AppComponent implements AfterViewInit {
         this.translateService.instant('Sleep'),
         this.translateService.instant('Repeat'),
       ],
-      labelUnselectOption: this.translateService.instant('Unselect'),
     };
 
     return [languagesData, colorsData, habitsData];

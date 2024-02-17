@@ -46,8 +46,7 @@
   background: #00316cc1;
   color: #fff;
 }
-.coding .ngx-dropdown-item:hover,
-.coding .ngx-unselect:hover {
+.coding .ngx-dropdown-item:hover {
   background: #2980b9;
 }
 .coding svg {

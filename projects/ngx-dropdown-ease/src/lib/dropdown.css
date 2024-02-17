@@ -72,14 +72,13 @@ span.ngx-badge {
 }
 
 .ngx-dropdown-title {
-  font-weight: 500;
+  font-weight: normal;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   max-width: 85%;
 }
-.ngx-dropdown-item,
-.ngx-unselect {
+.ngx-dropdown-item {
   display: flex;
   align-items: center;
   text-decoration: none;
@@ -107,33 +106,17 @@ span.ngx-badge {
   stroke-dasharray: 315;
   stroke-dashoffset: 0;
 }
-@keyframes dash {
-  from {
-    stroke-dashoffset: 315;
-  }
-  to {
-    stroke-dashoffset: 0;
-  }
-}
 
-.ngx-dropdown-item:focus,
-.ngx-unselect:focus {
+.ngx-dropdown-item:focus {
   outline: none;
 }
 
-.ngx-dropdown-item.active,
-.ngx-unselect.active {
+.ngx-dropdown-item.active {
   background: #f6f6f6;
 }
 
-.ngx-dropdown-item:hover,
-.ngx-unselect:hover {
+.ngx-dropdown-item:hover {
   background: #f6f6f6;
-}
-
-.ngx-dropdown-icon {
-  transition: 0.3s;
-  transform: rotate(0);
 }
 
 .ngx-dropdown-searchbar {
@@ -176,5 +159,33 @@ span.ngx-badge {
   }
   to {
     transform: translateX(0);
+  }
+}
+@keyframes scale-up-bottom {
+  from {
+    transform: scale(0.95);
+    transform-origin: bottom;
+  }
+  to {
+    transform: scale(1);
+    transform-origin: bottom;
+  }
+}
+@keyframes scale-up-top {
+  from {
+    transform: scale(0.95);
+    transform-origin: top;
+  }
+  to {
+    transform: scale(1);
+    transform-origin: top;
+  }
+}
+@keyframes scale-up {
+  from {
+    transform: scale(0.95);
+  }
+  to {
+    transform: scale(1);
   }
 }

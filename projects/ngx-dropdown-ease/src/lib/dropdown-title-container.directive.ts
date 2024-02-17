@@ -12,7 +12,7 @@ import {
   DropdownDirective,
   DropdownTitleDirective,
 } from './dropdown.directive';
-import { DropdownService } from './dropdown.service';
+import { InternalDropdownService } from './internalDropdown.service';
 
 @Directive({
   selector: '[ngxDropdownTitleContainer]',
@@ -37,7 +37,7 @@ export class DropdownTitleContainerDirective
   constructor(
     private element: ElementRef<HTMLDivElement>,
     private dropdown: DropdownDirective,
-    private dropdownService: DropdownService
+    private dropdownService: InternalDropdownService
   ) {}
 
   get native() {
@@ -74,7 +74,7 @@ export class DropdownTitleContainerDirective
   handleBadge() {
     this.elementsSelected = this.numberOfItems();
 
-    if (!this.badge) return;
+    if (!this.badge || this.dropdown.searchbar) return;
 
     if (this.elementsSelected > 1) {
       this.span.textContent = this.elementsSelected.toString();
@@ -104,10 +104,9 @@ export class DropdownTitleContainerDirective
   }
 
   numberOfItems() {
-    const currentDropdown = this.dropdown.dropdownID;
-    const activeDropdowns = this.dropdownService.getActiveDropdowns();
+    const dropdown = this.dropdownService.getDropdown(this.dropdown.dropdownID);
 
-    return activeDropdowns[currentDropdown].activesIndex.length || 0;
+    return dropdown.activesIndex.length || 0;
   }
 
   ngOnDestroy() {

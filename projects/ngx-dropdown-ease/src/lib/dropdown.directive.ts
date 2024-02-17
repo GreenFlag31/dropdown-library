@@ -11,23 +11,15 @@ import {
   AfterContentInit,
   HostBinding,
   AfterViewInit,
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
-import {
-  Subject,
-  empty,
-  filter,
-  firstValueFrom,
-  fromEvent,
-  switchMap,
-  take,
-  takeUntil,
-} from 'rxjs';
+import { Subject, filter, fromEvent, switchMap, take, takeUntil } from 'rxjs';
 import { DropdownItemDirective } from './dropdown-item.directive';
 import { DropdownsData, Select } from './interface';
-import { DropdownService } from './dropdown.service';
+import { InternalDropdownService } from './internalDropdown.service';
 import { DropdownTitleContainerDirective } from './dropdown-title-container.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
-import { InstantiateExpr } from '@angular/compiler';
 
 @Directive({
   selector: '[ngxDropdownTitle]',
@@ -81,10 +73,11 @@ export class DropdownDirective
   private invalid = false;
   private labelMinSelection!: HTMLParagraphElement;
   private keyboardIndex = -1;
-  private arrayOfItems!: (DropdownItemDirective | HTMLElement)[];
+  private itemsKeyboardNav!: DropdownItemDirective[];
   private searchbarElement!: HTMLInputElement | undefined;
   private childItems: DropdownItemDirective[] = [];
   private paddingLeft = '';
+  private scrollIndex = 0;
 
   @ContentChild(DropdownTitleContainerDirective)
   dropdownTitleContainer!: DropdownTitleContainerDirective;
@@ -95,7 +88,8 @@ export class DropdownDirective
 
   constructor(
     private element: ElementRef<HTMLElement>,
-    private dropdownService: DropdownService
+    private dropdownService: InternalDropdownService,
+    private cd: ChangeDetectorRef
   ) {}
 
   get default_title() {
@@ -122,31 +116,6 @@ export class DropdownDirective
     return this.dropdownTitleContainer.selectionNumber;
   }
 
-  /**
-   * if no selection, update main title.
-   */
-  updateTitleValue(value: string) {
-    this.defaultTitle = value;
-    if (this.listOfElements.length === 0) {
-      this.dropdownTitle.titleContent = value;
-    }
-  }
-
-  setInvalidDropdown(invalid: boolean) {
-    this.invalid = invalid;
-    this.labelMinSelection.style.visibility = `${
-      invalid ? 'visible' : 'hidden'
-    }`;
-  }
-
-  getListOfElements() {
-    return this.listOfElements;
-  }
-
-  clearListOfElements() {
-    this.listOfElements = [];
-  }
-
   ngOnInit() {
     this.onSelectionChange();
     this.onItemSelection();
@@ -155,14 +124,18 @@ export class DropdownDirective
   }
 
   ngAfterContentInit() {
-    this.createLabelMinNumberSelection();
     this.populateDropdownsInTheService();
-    this.addTabIndex();
-    this.arrayOfItems = this.dropdownItems.toArray();
+    this.native.tabIndex = 0;
+    this.itemsKeyboardNav = this.dropdownItems.toArray();
+    this.childItems = this.dropdownItems.toArray();
     this.displayTitle = this.dropdownMenu.displayTitleOption;
   }
 
+  /**
+   * Get the padding for title left value position.
+   */
   ngAfterViewInit() {
+    this.createLabelMinNumberSelection();
     const computedStyle = window.getComputedStyle(this.native);
     this.paddingLeft = computedStyle.getPropertyValue('padding-left');
 
@@ -170,36 +143,114 @@ export class DropdownDirective
     this.createSearchbar();
   }
 
+  private addTitleOnTop() {
+    if (!this.displayTitle) return;
+
+    this.pTitleOnTop = document.createElement('p');
+    this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
+    this.pTitleOnTop.style.color = this.titleColor;
+    this.dropdownTitle.native.style.minHeight =
+      this.dropdownTitle.native.clientHeight + 'px';
+
+    this.native.prepend(this.pTitleOnTop);
+  }
+
+  private createLabelMinNumberSelection() {
+    const minSelection = this.dropdownMenu.minNumberElementsSelection;
+
+    if (minSelection === 0) return;
+
+    this.element.nativeElement.classList.add('transparent-border');
+    this.labelMinSelection = document.createElement('p');
+    this.labelMinSelection.classList.add('ngx-label-min-selection');
+    this.labelMinSelection.innerText = `Please select min ${minSelection} element${
+      minSelection > 1 ? 's' : ''
+    }`;
+    this.native.prepend(this.labelMinSelection);
+  }
+
+  private populateDropdownsInTheService() {
+    const itemsValue = [];
+    for (const item of this.dropdownItems) {
+      itemsValue.push(item.native.innerText);
+    }
+
+    this.defaultActiveItems = this.dropdownMenu.defaultActive;
+
+    this.elementAndContent = {
+      element: this,
+      dropdownID: this.ID,
+      activesIndex: this.defaultActiveItems,
+      title: this.dropdownTitle.native.innerText,
+      itemsValue,
+      translation: false,
+    };
+    this.dropdownService.addActiveDropdownsAndContent(this.elementAndContent);
+  }
+
+  /**
+   * If no selection, update main title.
+   */
+  updateTitleValue(value: string) {
+    this.defaultTitle = value;
+    if (this.listOfElements.length === 0) {
+      this.dropdownTitle.titleContent = value;
+    }
+  }
+
+  /**
+   * Invalidate dropdown (red border) in case of not meeting the requirements.
+   */
+  setInvalidDropdown(invalid: boolean) {
+    this.invalid = invalid;
+    this.labelMinSelection.style.visibility = `${
+      invalid ? 'visible' : 'hidden'
+    }`;
+  }
+
+  clearListOfElements() {
+    this.listOfElements = [];
+  }
+
+  /**
+   * Create searchbar and replace dropdown titel with it.
+   */
   private createSearchbar() {
     if (!this.searchbar) return;
 
     this.searchbarElement = document.createElement('input');
     this.searchbarElement.classList.add('ngx-dropdown-searchbar');
+    this.searchbarElement.spellcheck = false;
+    this.searchbarElement.setAttribute('autocomplete', 'off');
     this.searchbarElement.value = this.defaultTitle;
-    const dropdownNative = this.dropdownTitleContainer.native;
     this.searchbarElement.addEventListener(
       'input',
       this.onSearchbarInputChange.bind(this)
     );
 
-    this.childItems = this.dropdownItems.toArray();
-    dropdownNative.firstChild?.remove();
-    dropdownNative.prepend(this.searchbarElement);
-  }
-
-  private resetAllFielsItems() {
-    if (!this.searchbarElement) return;
-
-    this.searchbarElement.blur();
-    if (this.listOfElements.length === 0) {
-      for (const item of this.childItems) {
-        item.native.style.display = 'flex';
+    this.searchbarElement.addEventListener('keydown', (event) => {
+      if (event.key === 'Enter') {
+        this.callClickOnItem(event);
       }
-    }
+    });
+
+    this.dropdownTitle.native.replaceWith(this.searchbarElement);
   }
 
+  /**
+   * Pressing Enter on searchbar triggers the search and click method of the respective element.
+   */
+  private callClickOnItem(e: Event) {
+    const index = this.childItems.findIndex((item) => item.activate);
+    if (index === -1) return;
+    this.childItems[index].onClick(e);
+  }
+
+  /**
+   * Triggered on input change. Update the array of results for keyboard navigation.
+   */
   private onSearchbarInputChange() {
-    const searchValue = this.searchbarElement!.value.toLowerCase();
+    const searchValue = this.searchbarElement!.value.toLowerCase().trim();
     const children: DropdownItemDirective[] = [];
 
     for (const item of this.childItems) {
@@ -218,64 +269,15 @@ export class DropdownDirective
       this.onClick();
     }
 
-    // not displaying the unselect option while searching
-    this.dropdownMenu.changeUnselectVisibility(false);
-    this.updateElementsKeyboardSupport(children);
+    this.itemsKeyboardNav = [...children];
     this.keyboardIndex = -1;
   }
 
   /**
-   * Update for keyboard support. The array contains the search results.
+   * Reset the items for keyboard support navigation.
    */
   private updateElementsKeyboardSupport(items: DropdownItemDirective[]) {
-    if (!this.searchbarElement) return;
-
-    if (this.arrayOfItems[0] instanceof HTMLElement) {
-      // keep unselect option
-      this.arrayOfItems = [this.arrayOfItems[0], ...items];
-    } else {
-      this.arrayOfItems = [...items];
-    }
-  }
-
-  addUnselectToKeyboardSupport(unselectElement: HTMLElement) {
-    this.arrayOfItems.unshift(unselectElement);
-  }
-
-  private addTabIndex() {
-    this.element.nativeElement.tabIndex = 0;
-  }
-
-  private createLabelMinNumberSelection() {
-    const minSelection = this.dropdownMenu.minNumberElementsSelection;
-
-    if (minSelection === 0) return;
-
-    this.element.nativeElement.classList.add('transparent-border');
-    this.labelMinSelection = document.createElement('p');
-    this.labelMinSelection.classList.add('ngx-label-min-selection');
-    this.labelMinSelection.innerText = `Please select min ${minSelection} element${
-      minSelection > 1 ? 's' : ''
-    }`;
-    this.element.nativeElement.prepend(this.labelMinSelection);
-  }
-
-  private populateDropdownsInTheService() {
-    const itemsValue = [];
-    for (const item of this.dropdownItems) {
-      itemsValue.push(item.native.innerText);
-    }
-
-    this.defaultActiveItems = this.dropdownMenu.defaultActive;
-
-    this.elementAndContent = {
-      element: this,
-      dropdownID: this.ID,
-      activesIndex: this.defaultActiveItems,
-      title: this.dropdownTitle.native.innerText,
-      itemsValue,
-    };
-    this.dropdownService.addActiveDropdownsAndContent(this.elementAndContent);
+    this.itemsKeyboardNav = items;
   }
 
   /**
@@ -287,15 +289,26 @@ export class DropdownDirective
     for (let i = 0; i < arrayDropdownItems.length; i++) {
       const current = arrayDropdownItems[i];
 
-      if (this.defaultActiveItems.indexOf(i) === -1) continue;
+      if (this.defaultActiveItems.indexOf(i) === -1) {
+        continue;
+      }
 
       const content = current.native.innerText || '';
-      // styling
       current.onItemSelection();
       this.updateTitleAndList(content);
-      this.dropdownTitleContainer.handleBadge();
 
       if (this.selection === 'single') break;
+    }
+
+    this.updateSearchbarValue();
+    this.dropdownTitleContainer.handleBadge();
+  }
+
+  updateSearchbarValue() {
+    if (this.searchbarElement) {
+      const selected = [...this.listOfElements].reverse().join(', ');
+      this.searchbarElement.value = selected || this.defaultTitle;
+      this.searchbarElement.title = selected || this.defaultTitle;
     }
   }
 
@@ -307,18 +320,6 @@ export class DropdownDirective
   updateTitleOnTop(title: string) {
     if (!this.pTitleOnTop) return;
     this.pTitleOnTop.innerText = title;
-  }
-
-  addTitleOnTop() {
-    if (!this.displayTitle) return;
-
-    this.pTitleOnTop = document.createElement('p');
-    this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
-    this.pTitleOnTop.style.color = this.titleColor;
-    this.dropdownTitle.native.style.minHeight =
-      this.dropdownTitle.native.clientHeight + 'px';
-
-    this.element.nativeElement.prepend(this.pTitleOnTop);
   }
 
   /**
@@ -344,34 +345,26 @@ export class DropdownDirective
     this.pTitleOnTop.animate(keyframes, options);
   }
 
-  /**
-   * If the menu is closed, show back the selected elements
-   */
-  private displaySelectedItemInSearchbar() {
-    if (this.searchbarElement) {
-      this.searchbarElement.value = [...this.listOfElements]
-        .reverse()
-        .join(', ');
-    }
-  }
-
   private displaySelectedItemInTitle() {
-    this.dropdownTitle.native.innerText = [...this.listOfElements]
-      .reverse()
-      .join(', ');
+    const selected = [...this.listOfElements].reverse().join(', ');
+
+    this.dropdownTitle.native.innerText = selected || this.defaultTitle;
+    this.dropdownTitle.native.title = selected || this.defaultTitle;
   }
 
   /**
    * In case of searchbar, display back all items.
    */
   private displayAllItems() {
+    if (!this.searchbar) return;
+
     for (const item of this.childItems) {
       item.native.style.display = 'flex';
     }
   }
 
-  private emptySearchbarIfSameElements() {
-    if (this.searchbarElement?.value) {
+  private emptySearchbar() {
+    if (this.searchbarElement) {
       this.searchbarElement.value = '';
     }
   }
@@ -397,24 +390,18 @@ export class DropdownDirective
 
       if (visible) {
         this.dropdownTitle.native.innerText = '';
-        this.emptySearchbarIfSameElements();
+        this.emptySearchbar();
         this.updateTitleDisplay();
       } else {
         this.searchbarElement?.blur();
         this.removeClassActiveItem();
+        this.updateElementsKeyboardSupport(this.childItems);
+        this.updateSearchbarValue();
+        this.displaySelectedItemInTitle();
 
-        if (this.listOfElements.length > 0) {
-          this.displaySelectedItemInSearchbar();
-          this.displaySelectedItemInTitle();
-          return;
+        if (this.listOfElements.length === 0) {
+          this.pTitleOnTop.innerText = '';
         }
-
-        if (this.searchbarElement) {
-          this.searchbarElement.value = this.defaultTitle;
-        }
-
-        this.dropdownTitle.titleContent = this.defaultTitle;
-        this.pTitleOnTop.innerText = '';
       }
     });
   }
@@ -428,24 +415,30 @@ export class DropdownDirective
         this.resetToDefaultTitle();
         this.displayAllItems();
         this.updateElementsKeyboardSupport(this.childItems);
+        this.resetSelectionPositionIfSearch();
         this.toggleDisplayBadge(false);
+        this.cd.markForCheck();
       });
   }
 
-  private removeClassActiveItem() {
+  private resetSelectionPositionIfSearch() {
+    if (this.searchbarElement?.value) {
+      this.removeClassActiveItem();
+      this.searchbarElement.value = '';
+    }
+    this.searchbarElement?.focus();
+  }
+
+  removeClassActiveItem() {
     this.keyboardIndex = -1;
 
-    for (const item of this.arrayOfItems) {
-      if (item instanceof HTMLElement) {
-        item.classList.remove('active');
-      } else {
-        item.activation = false;
-      }
+    for (const item of this.itemsKeyboardNav) {
+      item.activation = false;
     }
   }
 
   /**
-   * if option of disabling the title
+   * if option of disabling the title, à vérifier
    */
   resetToDefaultTitle() {
     if (!this.displayTitle && this.listOfElements.length === 0) {
@@ -482,10 +475,6 @@ export class DropdownDirective
 
     const elementsReversed = [...this.listOfElements].reverse().join(', ');
 
-    if (this.searchbarElement) {
-      this.searchbarElement.value = elementsReversed;
-      this.searchbarElement.title = elementsReversed;
-    }
     this.dropdownTitle.titleContent = elementsReversed;
     this.dropdownTitle.native.title = elementsReversed;
   }
@@ -493,16 +482,17 @@ export class DropdownDirective
   @HostListener('click', ['$event.currentTarget'])
   onClick() {
     if (this.disable) return;
-    if (this.searchbarElement) {
-      this.searchbarElement.focus();
-    }
+    this.searchbarElement?.focus();
     this.open = !this.open;
     this.visibilityChange.next(this.open);
   }
 
   @HostListener('keydown.enter', ['$event'])
-  onEnter() {
-    if (this.open) return;
+  onEnter(e: Event) {
+    if (this.open) {
+      this.callClickOnItem(e);
+      return;
+    }
     this.onClick();
   }
 
@@ -510,63 +500,78 @@ export class DropdownDirective
   onArrowUpKey(event: Event) {
     event.preventDefault();
 
-    if (this.keyboardIndex === 0 && this.searchbarElement) {
-      this.searchbarElement.focus();
-      this.searchbarElement.value = '';
-      this.removeClassActiveItem();
-    }
-
     if (this.keyboardIndex > 0) {
       this.keyboardIndex -= 1;
-      this.keyboardNavigation();
+      this.keyboardNavigation('up');
     }
   }
 
   @HostListener('keydown.arrowdown', ['$event'])
   onArrowDownKey(event: Event) {
     event.preventDefault();
-    if (this.keyboardIndex === 0 && this.dropdownMenu.unselectOption) {
-      (this.arrayOfItems[0] as HTMLElement).classList.remove('active');
-    }
 
     if (this.currentIndexKeyboardItem(this.keyboardIndex + 1)) {
       this.keyboardIndex += 1;
-      this.keyboardNavigation();
+      this.keyboardNavigation('down');
     }
   }
 
   private currentIndexKeyboardItem(index: number) {
-    return this.arrayOfItems[index];
+    return this.itemsKeyboardNav[index];
+  }
+
+  /**
+   * Custom scrolling to the active element
+   * Because the focus stays on the searchbox, a custom scroll has to be implemented.
+   */
+  private scrollToActiveElement(direction: 'up' | 'down') {
+    const maxElementsVisible = this.dropdownMenu.elementsVisible;
+    if (maxElementsVisible === Infinity) return;
+
+    const currentIndex = this.keyboardIndex + 1;
+
+    if (direction === 'down' && currentIndex <= maxElementsVisible) {
+      this.dropdownMenu.native.scrollTo({ top: 0 });
+      return;
+    }
+
+    if (direction === 'up' && currentIndex > this.scrollIndex) {
+      return;
+    }
+
+    let rest = currentIndex - maxElementsVisible;
+    if (direction === 'up') {
+      rest = currentIndex - 1;
+    }
+
+    const height = this.dropdownMenu.scrollHeight(rest, this.itemsKeyboardNav);
+
+    this.scrollIndex = rest;
+    this.dropdownMenu.native.scrollTo({ top: height });
   }
 
   /**
    * Handle keyboard navigation, put focus and class on active element.
    */
-  private keyboardNavigation() {
+  private keyboardNavigation(direction: 'up' | 'down') {
     const prev = this.currentIndexKeyboardItem(this.keyboardIndex - 1);
     const current = this.currentIndexKeyboardItem(this.keyboardIndex);
     const next = this.currentIndexKeyboardItem(this.keyboardIndex + 1);
+    this.scrollToActiveElement(direction);
 
-    if (prev && prev instanceof DropdownItemDirective) {
+    if (prev) {
       prev.activation = false;
     }
-    if (next && next instanceof DropdownItemDirective) {
+    if (next) {
       next.activation = false;
     }
 
-    if (current instanceof DropdownItemDirective) {
-      current.activation = true;
-      current.native.focus();
-    } else {
-      current.classList.add('active');
-      current.focus();
-    }
+    current.activation = true;
   }
 
   @HostListener('keydown.escape', ['$event'])
   onEscape() {
     this.onClick();
-    this.resetAllFielsItems();
   }
 
   @HostListener('document:click')

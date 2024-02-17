@@ -19,7 +19,6 @@ import { StyleSelection } from './interface';
 export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   @Input() disable = false;
 
-  private value = '';
   private iconSelection: 'check' | StyleSelection = 'check';
   private iconColor = 'green';
   private active = false;
@@ -40,16 +39,9 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   }
 
   ngAfterViewInit() {
-    this.value = this.native.innerText;
-    this.addTabIndex();
-
     if (this.disable) {
       this.native.setAttribute('disabled', 'disabled');
     }
-  }
-
-  private addTabIndex() {
-    this.element.nativeElement.tabIndex = 0;
   }
 
   get height() {
@@ -121,15 +113,16 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
         '.ngx-checked path'
       )!;
 
-    debugger;
+    const keyframes = [{ strokeDashoffset: 315 }, { strokeDashoffset: 0 }];
+
+    const options: KeyframeAnimationOptions = {
+      duration: this.dropdown.selection === 'single' ? 0 : 200,
+      easing: 'cubic-bezier(0, 0, 0.2, 1)',
+      fill: 'forwards',
+    };
 
     svgPathElement.style.stroke = this.iconColor;
-    if (this.dropdown.selection === 'single') {
-      svgPathElement.style.animation = '';
-    } else {
-      svgPathElement.style.animation =
-        'dash 0.2s cubic-bezier(0, 0, 0.2, 1) forwards';
-    }
+    svgPathElement.animate(keyframes, options);
   }
 
   private resetStyle(element: HTMLElement | null) {
@@ -144,19 +137,14 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     element.classList.remove('ngx-custom');
   }
 
-  @HostListener('keydown.enter', ['$event'])
-  onEnter(e: Event) {
-    this.onClick(e);
-  }
-
   @HostListener('click', ['$event'])
   onClick(e: Event) {
     e.stopPropagation();
     if (this.disable) return;
 
-    let checkIcon =
+    const checkIcon =
       this.element.nativeElement.querySelector<HTMLElement>('.ngx-checked');
-    let customStyleCheckedEl =
+    const customStyleCheckedEl =
       this.element.nativeElement.querySelector<HTMLElement>('.ngx-custom');
 
     const selection = this.element.nativeElement.innerText || '';
@@ -166,22 +154,25 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
       this.element.nativeElement.contains(checkIcon) ||
       this.element.nativeElement.contains(customStyleCheckedEl)
     ) {
-      this.unselectStyles(checkIcon, customStyleCheckedEl);
+      this.removeSelectionStyle(checkIcon, customStyleCheckedEl);
     } else {
-      if (this.dropdown.selection === 'single') {
-        checkIcon =
-          this.dropdownMenu.native.querySelector<HTMLElement>('.ngx-checked');
-        customStyleCheckedEl =
-          this.dropdownMenu.native.querySelector<HTMLElement>('.ngx-custom');
-        this.unselectStyles(checkIcon, customStyleCheckedEl);
-        this.dropdown.visibilityChange.next(false);
-      }
-
+      this.singleSelection();
       this.onItemSelection();
     }
   }
 
-  unselectStyles(
+  private singleSelection() {
+    if (this.dropdown.selection === 'single') {
+      const checkIcon =
+        this.dropdownMenu.native.querySelector<HTMLElement>('.ngx-checked');
+      const customStyleCheckedEl =
+        this.dropdownMenu.native.querySelector<HTMLElement>('.ngx-custom');
+      this.removeSelectionStyle(checkIcon, customStyleCheckedEl);
+      this.dropdown.visibilityChange.next(false);
+    }
+  }
+
+  private removeSelectionStyle(
     checkIcon: HTMLElement | null,
     customStyleCheckedEl: HTMLElement | null
   ) {
