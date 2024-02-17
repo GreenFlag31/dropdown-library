@@ -25,8 +25,9 @@ export class DropdownTitleContainerDirective
   @Input() badge = false;
   @Input() icon = true;
   @Input() iconColor = '#000';
-  @Input() defaultTitleColor = '#000';
-  @Input() titleColor = '#000';
+  @Input() secondaryTitle = true;
+  @Input() mainTitleColor = '#000';
+  @Input() secondarytitleColor = '#000';
 
   private elementsSelected = 0;
   private destroy = new Subject<void>();
@@ -52,11 +53,15 @@ export class DropdownTitleContainerDirective
     return this.badge;
   }
 
+  get displayTitleOption() {
+    return this.secondaryTitle;
+  }
+
   ngOnInit() {
     this.span = document.createElement('span');
     this.span.classList.add('ngx-badge');
-    this.dropdown.setTitleColor(this.defaultTitleColor, this.titleColor);
-    this.native.style.color = this.defaultTitleColor;
+    this.dropdown.setTitleColor(this.mainTitleColor, this.secondarytitleColor);
+    this.native.style.color = this.mainTitleColor;
   }
 
   ngAfterViewInit() {

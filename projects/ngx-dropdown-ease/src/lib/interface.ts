@@ -8,20 +8,15 @@ export interface StyleSelection {
   fontWeight?: string;
 }
 
-export type Position =
-  | 'top-left'
-  | 'top'
-  | 'top-right'
-  | 'bottom-left'
-  | 'bottom'
-  | 'bottom-right';
+export type Position = 'top' | 'bottom';
 
 export type AnimationTimingFn =
   | 'linear'
   | 'ease'
   | 'ease-in'
   | 'ease-out'
-  | 'ease-in-out';
+  | 'ease-in-out'
+  | string;
 
 export type Animation = 'expand' | 'none' | string;
 

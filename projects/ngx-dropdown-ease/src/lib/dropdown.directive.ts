@@ -127,7 +127,7 @@ export class DropdownDirective
     this.native.tabIndex = 0;
     this.itemsKeyboardNav = this.dropdownItems.toArray();
     this.childItems = this.dropdownItems.toArray();
-    this.displayTitle = this.dropdownMenu.displayTitleOption;
+    this.displayTitle = this.dropdownTitleContainer.displayTitleOption;
   }
 
   /**

@@ -2,7 +2,7 @@
 
 # Description
 
-ngx-modal-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, a searchbar, build-in and customs animations, and many other options.
+ngx-modal-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, keyboard navigation, and many other options.
 
 Support Angular version starts at v17.
 
@@ -18,7 +18,7 @@ You can install the library using the following command:
 npm i ngx-dropdown-ease
 ```
 
-Add then the `DropdownModule` containing all the directives to your main module or your standalone component.
+Add the `DropdownModule` containing all the directives to your module or your standalone component.
 
 # Options
 
@@ -51,179 +51,181 @@ This library consists in a set of directives to apply in the template containing
 </div>
 ```
 
-| Directive   | Option    | Default  | Description                                                         |
-| ----------- | --------- | -------- | ------------------------------------------------------------------- |
-| ngxDropdown | selection | 'single' | Selection behavior of the dropdown. Choice: 'single' or 'multiple'. |
-
-# Complete Example
-
-Inject the ModalService through regular dependency injection in your component.
-
-In the following example, `ModalContentComponent` is the content of the modal and should be provided as first parameter. As second parameter, provide an object respecting the `Options` interface (see above).
+| Directive                 | Option                    | Default  | Description                                                                                          |
+| ------------------------- | ------------------------- | -------- | ---------------------------------------------------------------------------------------------------- |
+| ngxDropdown               | selection                 | single   | Selection behavior of the dropdown. Accept 'single' or 'multiple'.                                   |
+| ngxDropdown               | disable                   | false    | Disable the dropdown.                                                                                |
+| ngxDropdown               | searchbar                 | false    | Enable a searchbar in the dropdown.                                                                  |
+| ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number.                                              |
+| ngxDropdownTitleContainer | icon                      | true     | Display the icon in the title.                                                                       |
+| ngxDropdownTitleContainer | iconColor                 | #000     | Set the color or the title icon.                                                                     |
+| ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                     |
+| ngxDropdownTitleContainer | secondaryTitle            | true     | Display the secondary title.                                                                         |
+| ngxDropdownTitleContainer | secondarytitleColor       | #000     | Set the color of the secondary title.                                                                |
+| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening.                                                         |
+| ngxDropdownMenu           | defaultActiveItems        | []       | An array containing indexes of the default active items.                                             |
+| ngxDropdownMenu           | elementsVisible           | Infinity | The number of element that will be visible at opening. A scroll bar will appear.                     |
+| ngxDropdownMenu           | animation                 | none     | Define the opening animation. See build-in animation [here](#build-in).                              |
+| ngxDropdownMenu           | animationTimingMs         | 300      | Set the duration of the opening animation in ms.                                                     |
+| ngxDropdownMenu           | animationTimingFn         | ease     | Set the timing function for opening animation.                                                       |
+| ngxDropdownMenu           | minNumberElementsToSelect | 0        | Define a minimum number of elements to select. A label on top of the dropdown will appear.           |
+| ngxDropdownMenu           | iconSelection             | check    | Define the item style at selection. Choose between a check mark or custom style of `StyleSelection`. |
+| ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                  |
+| ngxDropdownItem           | disable                   | false    | Disable the item for selection.                                                                      |
 
 ```
-  this.modalService.open(ModalContentComponent, {
-    modal: {
-      <!-- animation -->
-      enter: 'enter-scale-down 0.1s ease-out',
-    },
-    overlay: {
-      <!-- animation -->
-      leave: 'fade-out 0.3s',
-    },
-    size: {
-      <!-- modal configuration -->
-      width: '400px',
-    },
-    data: {
-      <!-- data to ModalContentComponent -->
-      type: 'Angular modal library',
-    },
-  })
-  .subscribe((dataFromModalContentComponent) => {
-    ...
+StyleSelection {
+  backgroundColor?: string;
+  color?: string;
+  borderLeft?: string;
+  fontWeight?: string;
+}
+```
+
+# DropdownService
+
+This library exposes a `DropdownService` that contains the following API:
+
+```
+<!-- Initialise translation at start -->
+initialise(translatedValues: TranslatedValues[]);
+
+<!-- Update translation at runtime -->
+update(translatedValues: TranslatedValues[]);
+
+<!-- Get the list of your items for translation  -->
+getListOfElements(dropdown: ElementRef);
+
+<!-- Get all active dropdowns and content  -->
+getDropdowns();
+```
+
+See the next section for a complete example using translation.
+
+# Tranlation
+
+This library supports translation by a third party library of your choice. The following example utilise the '@ngx-translate/core' library.
+
+Translated values should be provided at start and at language change through the following methods:
+
+```
+<!-- DOM content should be ready -->
+ngAfterViewInit() {
+  // Initialisation
+  this.translateService.onDefaultLangChange.subscribe(() => {
+    this.dropdownService.initialise(this.dropdownsData());
   });
+
+  // Changing language at runtime
+  this.translateService.onLangChange.subscribe(() => {
+    this.dropdownService.update(this.dropdownsData());
+  });
+}
+
+dropdownsData() {
+  const colorsData: TranslatedValues = {
+    <!-- @ViewChild ElementRef -->
+    dropdown: this.RBGA,
+    <!-- Title text content -->
+    title: this.translateService.instant('Colors'),
+    <!-- Items text content (same as the HTML order) -->
+    items: [
+      this.translateService.instant('Red'),
+      this.translateService.instant('Green'),
+      this.translateService.instant('Blue'),
+    ],
+  };
+
+
+  return [colorsData];
+}
 ```
 
-Any type of data can be provided between components. Create the corresponding property (here, `type`) in your component (here, `ModalContentComponent`) and the property will be assigned with the provided value.
-
-In your `ModalContentComponent`:
-To pass information from the `ModalContentComponent` to your current component, inject the `ModalService` through regular dependency injection and call the `close(data)` method from the service with any data you wish to send back to your component. This method returns an RxJs subject, so subscribe to it as shown in the above example. It is not necessary to unsubscribe from the subscription since it will automatically `complete()` in the service.
+Provide an object respecting following interface:
 
 ```
-  <!-- Inside ModalContentComponent -->
-  onClose() {
-    this.modalService.close(this.dataToSendBack);
-  }
+interface TranslatedValues {
+  <!-- The element ref that you attached to the ngxDropdown directive  -->
+  dropdown: ElementRef;
+  <!-- The ngxDropdownTitle title text content -->
+  title: string;
+  <!-- All the ngxDropdownItem text content  -->
+  items: string[];
+}
 ```
 
-Publicly available methods have been exhaustively documented and typed, so you should get autocomplete and help from your code editor. Press on `CTRL + space` to get help on the available properties in the `Options` object.
+If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the translation method of your third party translation library (here, `this.translateService.instant(value)`). This method should be synchronous.
 
-# ModalService
+This requires an extra step, but this is by far the cleanest solution to handle a third party asynchronous library.
 
-This library exposes a `ModalService` that contains the following API:
-
-```
-<!-- Opens a component inside the modal -->
-open<C>(componentToCreate: Type<C>, options?: Options);
-
-<!-- Close a modal with optional data to send back -->
-close(data?: unknown);
-
-<!-- Close all opened modals -->
-closeAll();
-```
-
-NB: Z-index of overlay and modal start at 1000 and 2000 respectively. In case of multiple modals, z-indexes will be incremented by 1000.
+<a id="build-in"></a>
 
 # Ready-to-use animations keyframes
 
-This library comes with predefined and ready-to-use animations keyframes. Just fill in the `name`, `duration` and `easing function` (more info on the `animation CSS shorthand` [here](https://developer.mozilla.org/en-US/docs/Web/CSS/animation)). Those animations are _position agnostic_, so if you wish to position your modal at other `top` and `left` values than default, it will correctly work. Of course, you can create your own keyframes too.
+This library comes with build-in and ready-to-use animations keyframes to animate the opening menu. Just fill in the `name`, `duration` and `easing function` (more info on the `animation CSS shorthand` [here](https://developer.mozilla.org/en-US/docs/Web/CSS/animation)). Of course, you can create your own keyframes too.
 
 ```
-/* Recommended: 0.2s ease-out */
-@keyframes enter-going-down {
+@keyframes going-down {
   from {
-    transform: translate(-50%, -60%);
+    transform: translateY(-5%);
   }
   to {
-    transform: translate(-50%, -50%);
+    transform: translateY(0);
   }
 }
-
-/* Recommended: 0.2s linear */
-@keyframes enter-scaling {
+@keyframes going-up {
   from {
-    transform: scale(0.8) translate(-50%, -50%);
-    transform-origin: left;
+    transform: translateY(5%);
   }
   to {
-    transform: scale(1) translate(-50%, -50%);
-    transform-origin: left;
+    transform: translateY(0);
   }
 }
-
-/* Recommended: 0.1s ease-out */
-@keyframes enter-scale-down {
+@keyframes going-left {
   from {
-    transform: scale(1.5) translate(-50%, -60%);
-    transform-origin: left;
+    transform: translateX(5%);
   }
   to {
-    transform: scale(1) translate(-50%, -50%);
-    transform-origin: left;
+    transform: translateX(0);
   }
 }
-
-/* Recommended: 0.3s linear */
-@keyframes fade-in {
+@keyframes going-right {
   from {
-    opacity: 0;
+    transform: translateX(-5%);
   }
   to {
-    opacity: 1;
+    transform: translateX(0);
   }
 }
-
-/* Recommended: 0.3s linear */
-@keyframes fade-out {
+@keyframes scale-up-bottom {
   from {
-    opacity: 1;
+    transform: scale(0.95);
+    transform-origin: bottom;
   }
   to {
-    opacity: 0;
+    transform: scale(1);
+    transform-origin: bottom;
   }
 }
-
-/* Recommended: 0.7s linear */
-@keyframes bounce-in {
-  0% {
-    transform: translate(-50%, -85%);
+@keyframes scale-up-top {
+  from {
+    transform: scale(0.95);
+    transform-origin: top;
   }
-  18% {
-    transform: translate(-50%, -50%);
-  }
-  60% {
-    transform: translate(-50%, -65%);
-  }
-  80% {
-    transform: translate(-50%, -50%);
-  }
-  90% {
-    transform: translate(-50%, -53%);
-  }
-  100% {
-    transform: translate(-50%, -50%);
+  to {
+    transform: scale(1);
+    transform-origin: top;
   }
 }
-
-/* Recommended: 1s linear */
-@keyframes scale-rotate {
-  30% {
-    transform: scale(1.05) translate(-50%, -50%);
-    transform-origin: left;
+@keyframes scale-up {
+  from {
+    transform: scale(0.95);
   }
-  40%,
-  60% {
-    transform: rotate(-3deg) scale(1.05) translate(-50%, -50%);
-    transform-origin: left;
-  }
-  50% {
-    transform: rotate(3deg) scale(1.05) translate(-50%, -50%);
-    transform-origin: left;
-  }
-  70% {
-    transform: rotate(0deg) scale(1.05) translate(-50%, -50%);
-    transform-origin: left;
-  }
-  100% {
-    transform: scale(1) translate(-50%, -50%);
-    transform-origin: left;
+  to {
+    transform: scale(1);
   }
 }
 ```
-
-If you create your own keyframes, I would recommend to create a new file `modal-animations` (.css or preprocessor), and @import it in your `styles.css` (or preprocessor) at the root of the application.
 
 # SSR (Server Side Rendering)
 
@@ -235,12 +237,9 @@ This library has been documented and should provide autocomplete and help from y
 
 # Performance
 
-Emphasis has been placed on performance, adopting `ChangeDetectionStrategy.OnPush` strategy. This library respects Angular's mindset and use the Angular API to create components. Modal components will be removed from the DOM after closing.
+Even if this library has been optimised and follows the DRY principles (tested under the `ChangeDetectionStrategy.OnPush` strategy), it is _not recommended_ by Angular to display several hundreds of directive and a page (see [here](https://angular.io/guide/directive-composition-api#performance) in the documentation). If you have a lot of dropdowns of a page, you should rather opt for a pagination system.
 
 # Change log
-
-Version 0.0.4: Fixed of a communication bug between components. Every modal has now its own subject to send back data to the calling component.
-Version 0.0.5: Fixed a bug between components that prevented the component from closing when applying different animations with multiple stacked modals.
 
 # Report a Bug
 

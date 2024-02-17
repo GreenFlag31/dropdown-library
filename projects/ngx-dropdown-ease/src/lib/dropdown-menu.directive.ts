@@ -27,13 +27,12 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
   @Input() position: Position = 'bottom';
   @Input() defaultActiveItems: number[] = [];
   @Input() elementsVisible = Infinity;
-  @Input() animation = 'expand';
+  @Input() animation = 'none';
   @Input() animationTimingMs = 300;
   @Input() animationTimingFn: AnimationTimingFn = 'ease';
   @Input() minNumberElementsToSelect = 0;
   @Input() iconSelection: 'check' | StyleSelection = 'check';
   @Input() iconColor = 'green';
-  @Input() displayTitle = true;
 
   private heightOfContent = 0;
   private open = false;
@@ -57,10 +56,6 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
 
   get iconC() {
     return this.iconColor;
-  }
-
-  get displayTitleOption() {
-    return this.displayTitle;
   }
 
   get minNumberElementsSelection() {
