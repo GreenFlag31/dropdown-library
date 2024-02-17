@@ -62,7 +62,7 @@ This library consists in a set of directives to apply in the template containing
 | ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                     |
 | ngxDropdownTitleContainer | secondaryTitle            | true     | Display the secondary title.                                                                         |
 | ngxDropdownTitleContainer | secondarytitleColor       | #000     | Set the color of the secondary title.                                                                |
-| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening.                                                         |
+| ngxDropdownMenu           | position                  | bottom   | Set the position of the dropdown at opening. Accept 'bottom' or 'top'.                               |
 | ngxDropdownMenu           | defaultActiveItems        | []       | An array containing indexes of the default active items.                                             |
 | ngxDropdownMenu           | elementsVisible           | Infinity | The number of element that will be visible at opening. A scroll bar will appear.                     |
 | ngxDropdownMenu           | animation                 | none     | Define the opening animation. See build-in animation [here](#build-in).                              |
@@ -227,9 +227,9 @@ This library comes with build-in and ready-to-use animations keyframes to animat
 }
 ```
 
-# SSR (Server Side Rendering)
+# Accessibility
 
-This library supports Server Side Rendering (SSR). The modal will not instantiate during server-side execution, as it requires access to the DOM API.
+This library has been build with accessibility in mind. Dropdowns are keyboard accessible and an alternative text is added (where necessary) for screen readers.
 
 # DX Friendly
 
