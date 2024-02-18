@@ -16,11 +16,8 @@
   color: #000;
   text-wrap: nowrap;
 }
-.ngx-dropdown.transparent-border {
-  border: 1px solid transparent;
-}
 .ngx-dropdown.ngx-invalid {
-  border: 1px solid red;
+  outline: 1px solid red;
 }
 
 .ngx-dropdown-title-container {
@@ -28,6 +25,7 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.3rem;
+  padding: 0.3rem 0;
 }
 span.ngx-badge {
   display: flex;
@@ -93,10 +91,13 @@ span.ngx-badge {
 }
 
 .ngx-dropdown svg {
-  margin-left: auto;
   overflow: visible;
   width: 15px;
   height: 15px;
+}
+
+.ngx-dropdown-menu svg {
+  margin-left: auto;
 }
 
 .ngx-checked path {
@@ -105,10 +106,6 @@ span.ngx-badge {
 .ngx-checked path {
   stroke-dasharray: 315;
   stroke-dashoffset: 0;
-}
-
-.ngx-dropdown-item:focus {
-  outline: none;
 }
 
 .ngx-dropdown-item.active {
@@ -125,7 +122,6 @@ span.ngx-badge {
   outline: none;
   border: none;
   font-size: 0.9rem;
-  padding: 0.3rem 0;
   cursor: pointer;
 }
 

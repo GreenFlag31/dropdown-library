@@ -26,7 +26,7 @@ This library consists in a set of directives to apply in the template containing
 
 ```
 <div
-  ngxDropdown
+  <span style="color:blue">ngxDropdown</span>
   selection="multiple"
   [searchbar]="true"
   class="selection-container orders"

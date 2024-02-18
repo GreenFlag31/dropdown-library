@@ -71,16 +71,12 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
    * Validate dropdown on basis of a minimum number of elements to select.
    */
   private validateDropdown() {
-    const currentNumberOfItemsSelected =
-      this.dropdown.currentNumberOfItemsSelected;
+    const selectionTotal = this.dropdown.currentNumberOfItemsSelected;
 
     if (!this.minNumberElementsToSelect) return;
 
-    if (currentNumberOfItemsSelected < this.minNumberElementsToSelect) {
-      this.dropdown.setInvalidDropdown(true);
-    } else {
-      this.dropdown.setInvalidDropdown(false);
-    }
+    const isInvalid = selectionTotal < this.minNumberElementsToSelect;
+    this.dropdown.setInvalidDropdown(isInvalid);
   }
 
   @HostListener('mouseenter')
@@ -159,7 +155,7 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     return this.dropdownItems.length;
   }
 
-  scrollHeight(take: number, elements: DropdownItemDirective[]) {
+  computeTotalHeight(take: number, elements = this.dropdownItems.toArray()) {
     const items = elements.slice(0, take);
 
     return items.reduce((acc, current) => {
@@ -167,24 +163,14 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     }, 0);
   }
 
-  computeTotalHeight(
-    take = this.numberOfElements(),
-    elements = this.dropdownItems.toArray()
-  ) {
-    const maximum = Math.min(take, this.elementsVisible);
-    const items = elements.slice(0, maximum);
-
-    return items.reduce((acc, current) => {
-      return acc + current.native.clientHeight;
-    }, 0);
-  }
-
   computeHeightContent() {
-    if (this.elementsVisible < this.numberOfElements()) {
+    const items = this.numberOfElements();
+    if (this.elementsVisible < items) {
       this.native.style.overflow = 'auto';
     }
 
-    return this.computeTotalHeight();
+    const take = Math.min(items, this.elementsVisible);
+    return this.computeTotalHeight(take);
   }
 
   @HostBinding('style.maxHeight')

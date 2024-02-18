@@ -1,13 +1,11 @@
 import {
   Directive,
   AfterViewInit,
-  OnDestroy,
   ElementRef,
   ContentChild,
   Input,
   OnInit,
 } from '@angular/core';
-import { Subject, takeUntil } from 'rxjs';
 import {
   DropdownDirective,
   DropdownTitleDirective,
@@ -19,20 +17,19 @@ import { InternalDropdownService } from './internalDropdown.service';
   standalone: true,
   host: { class: 'ngx-dropdown-title-container' },
 })
-export class DropdownTitleContainerDirective
-  implements OnInit, AfterViewInit, OnDestroy
-{
+export class DropdownTitleContainerDirective implements OnInit, AfterViewInit {
   @Input() badge = false;
   @Input() icon = true;
   @Input() iconColor = '#000';
-  @Input() secondaryTitle = true;
+  @Input() displaySecondaryTitle = true;
   @Input() mainTitleColor = '#000';
   @Input() secondarytitleColor = '#000';
   @Input() secondaryTitleAnimation = true;
 
   private elementsSelected = 0;
-  private destroy = new Subject<void>();
-  private span!: HTMLSpanElement;
+  private badgeElement!: HTMLSpanElement;
+  private badgeAdded = false;
+
   @ContentChild(DropdownTitleDirective)
   dropdownTitle!: DropdownTitleDirective;
 
@@ -47,15 +44,27 @@ export class DropdownTitleContainerDirective
   }
 
   get selectionNumber() {
-    return this.numberOfItems();
+    return this.numberOfActiveItems();
   }
 
   get isBadge() {
     return this.badge;
   }
 
-  get displayTitleOption() {
-    return this.secondaryTitle;
+  get badgeEl() {
+    return this.badgeElement;
+  }
+
+  get badgeHasBeenAdded() {
+    return this.badgeAdded;
+  }
+
+  get secondaryTitleC() {
+    return this.secondarytitleColor;
+  }
+
+  get secondaryTitle() {
+    return this.displaySecondaryTitle;
   }
 
   get animationSecondaryTitle() {
@@ -63,44 +72,41 @@ export class DropdownTitleContainerDirective
   }
 
   ngOnInit() {
-    this.span = document.createElement('span');
-    this.span.classList.add('ngx-badge');
-    this.dropdown.setTitleColor(this.mainTitleColor, this.secondarytitleColor);
+    this.badgeElement = document.createElement('span');
+    this.badgeElement.classList.add('ngx-badge');
     this.native.style.color = this.mainTitleColor;
   }
 
   ngAfterViewInit() {
-    this.dropdown.default_title = this.dropdownTitle.native.innerText;
-
     this.addIcon();
 
-    this.dropdown.selectionChange
-      .pipe(takeUntil(this.destroy))
-      .subscribe(() => {
-        this.handleBadge();
-      });
+    this.dropdown.selectionChange.subscribe(() => {
+      this.handleBadge();
+    });
   }
 
   handleBadge() {
-    this.elementsSelected = this.numberOfItems();
-
-    // pas de badge avec searchbar?
+    // no badge with searchbar
     if (!this.badge || this.dropdown.searchbar) return;
 
+    this.elementsSelected = this.numberOfActiveItems();
+
     if (this.elementsSelected > 1) {
-      this.span.textContent = this.elementsSelected.toString();
-      if (!this.element.nativeElement.querySelector('.badge')) {
-        this.dropdownTitle.native!.after(this.span);
+      this.badgeElement.innerText = this.elementsSelected.toString();
+      if (!this.badgeAdded) {
+        this.dropdownTitle.native.after(this.badgeElement);
+        this.badgeAdded = true;
       }
     } else {
-      this.element.nativeElement.querySelector('.ngx-badge')?.remove();
+      this.badgeElement.remove();
+      this.badgeAdded = false;
     }
   }
 
   addIcon() {
     if (!this.icon) return;
 
-    this.element.nativeElement.insertAdjacentHTML(
+    this.native.insertAdjacentHTML(
       'beforeend',
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 512" class="ngx-dropdown-icon" aria-label="dropdown mark icon">
       <path
@@ -109,18 +115,13 @@ export class DropdownTitleContainerDirective
       </svg>`
     );
 
-    this.element.nativeElement.querySelector<SVGElement>(
-      '.ngx-dropdown-icon'
-    )!.style.fill = this.iconColor;
+    this.native.querySelector<SVGElement>('.ngx-dropdown-icon')!.style.fill =
+      this.iconColor;
   }
 
-  numberOfItems() {
+  numberOfActiveItems() {
     const dropdown = this.dropdownService.getDropdown(this.dropdown.dropdownID);
 
-    return dropdown.activesIndex.length || 0;
-  }
-
-  ngOnDestroy() {
-    this.destroy.next();
+    return dropdown.activesIndex.length;
   }
 }

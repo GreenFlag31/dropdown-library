@@ -40,6 +40,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
 
   ngAfterViewInit() {
     if (this.disable) {
+      // accessibility
       this.native.setAttribute('disabled', 'disabled');
     }
   }
@@ -53,7 +54,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   }
 
   /**
-   * Updates the text element
+   * Updates the text element (translation)
    */
   updateValueTranslation(value: string) {
     const itemContent = Array.from(this.native.childNodes);
@@ -109,9 +110,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     );
 
     const svgPathElement =
-      this.element.nativeElement.querySelector<SVGElement>(
-        '.ngx-checked path'
-      )!;
+      this.native.querySelector<SVGElement>('.ngx-checked path')!;
 
     const keyframes = [{ strokeDashoffset: 315 }, { strokeDashoffset: 0 }];
 
@@ -128,11 +127,10 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   private resetStyle(element: HTMLElement | null) {
     if (!element) return;
 
-    element.style.backgroundColor =
-      this.element.nativeElement.style.backgroundColor;
-    element.style.color = this.element.nativeElement.style.color;
-    element.style.borderLeft = this.element.nativeElement.style.borderLeft;
-    element.style.fontWeight = this.element.nativeElement.style.fontWeight;
+    element.style.backgroundColor = this.native.style.backgroundColor;
+    element.style.color = this.native.style.color;
+    element.style.borderLeft = this.native.style.borderLeft;
+    element.style.fontWeight = this.native.style.fontWeight;
 
     element.classList.remove('ngx-custom');
   }
@@ -142,17 +140,16 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     e.stopPropagation();
     if (this.disable) return;
 
-    const checkIcon =
-      this.element.nativeElement.querySelector<HTMLElement>('.ngx-checked');
+    const checkIcon = this.native.querySelector<HTMLElement>('.ngx-checked');
     const customStyleCheckedEl =
-      this.element.nativeElement.querySelector<HTMLElement>('.ngx-custom');
+      this.native.querySelector<HTMLElement>('.ngx-custom');
 
-    const selection = this.element.nativeElement.innerText || '';
+    const selection = this.native.innerText || '';
     this.dropdown.selectionChange.next(selection);
 
     if (
-      this.element.nativeElement.contains(checkIcon) ||
-      this.element.nativeElement.contains(customStyleCheckedEl)
+      this.native.contains(checkIcon) ||
+      this.native.contains(customStyleCheckedEl)
     ) {
       this.removeSelectionStyle(checkIcon, customStyleCheckedEl);
     } else {

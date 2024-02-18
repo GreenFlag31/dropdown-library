@@ -13,7 +13,7 @@ import {
   AfterViewInit,
   ChangeDetectorRef,
 } from '@angular/core';
-import { Subject, filter, fromEvent, switchMap, take, takeUntil } from 'rxjs';
+import { Subject, filter, fromEvent, switchMap, takeUntil } from 'rxjs';
 import { DropdownItemDirective } from './dropdown-item.directive';
 import { DropdownsData, Select } from './interface';
 import { InternalDropdownService } from './internalDropdown.service';
@@ -39,6 +39,15 @@ export class DropdownTitleDirective {
   set titleContent(value: string) {
     this.native.innerText = value;
   }
+
+  /**
+   * Font might not be loaded in ngAfterViewInit
+   */
+  setMinHeightOnTitle() {
+    if (!this.native.style.minHeight) {
+      this.native.style.minHeight = this.native.clientHeight + 'px';
+    }
+  }
 }
 
 @Directive({
@@ -63,12 +72,10 @@ export class DropdownDirective
   private elementAndContent = {} as DropdownsData;
   private ID = 0;
   private notifierEndSub = new Subject<void>();
-  private destroy = new Subject<void>();
-  private displayTitle = false;
+  private displaySecondaryTitle = false;
   private pTitleOnTop!: HTMLParagraphElement;
   private defaultTitle = '';
-  private titleColor = '#000';
-  private defaultColor = '#000';
+  private secondaryTitleColor = '#000';
   private invalid = false;
   private labelMinSelection!: HTMLParagraphElement;
   private keyboardIndex = -1;
@@ -128,9 +135,13 @@ export class DropdownDirective
     this.native.tabIndex = 0;
     this.itemsKeyboardNav = this.dropdownItems.toArray();
     this.childItems = this.dropdownItems.toArray();
-    this.displayTitle = this.dropdownTitleContainer.displayTitleOption;
+    this.displaySecondaryTitle =
+      this.dropdownTitleContainer.displaySecondaryTitle;
     this.secondaryTitleAnimation =
       this.dropdownTitleContainer.animationSecondaryTitle;
+    this.defaultActiveItems = this.dropdownMenu.defaultActive;
+    this.defaultTitle = this.dropdownTitle.titleContent;
+    this.secondaryTitleColor = this.dropdownTitleContainer.secondaryTitleC;
   }
 
   /**
@@ -146,23 +157,18 @@ export class DropdownDirective
   }
 
   private addTitleOnTop() {
-    if (!this.displayTitle) return;
+    if (!this.displaySecondaryTitle) return;
 
     this.pTitleOnTop = document.createElement('p');
     this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
-    this.pTitleOnTop.style.color = this.titleColor;
-    this.dropdownTitle.native.style.minHeight =
-      this.dropdownTitle.native.clientHeight + 'px';
-
+    this.pTitleOnTop.style.color = this.secondaryTitleColor;
     this.native.prepend(this.pTitleOnTop);
   }
 
   private createLabelMinNumberSelection() {
     const minSelection = this.dropdownMenu.minNumberElementsSelection;
-
     if (minSelection === 0) return;
 
-    this.element.nativeElement.classList.add('transparent-border');
     this.labelMinSelection = document.createElement('p');
     this.labelMinSelection.classList.add('ngx-label-min-selection');
     this.labelMinSelection.innerText = `Please select min ${minSelection} element${
@@ -177,12 +183,10 @@ export class DropdownDirective
       itemsValue.push(item.native.innerText);
     }
 
-    this.defaultActiveItems = this.dropdownMenu.defaultActive;
-
     this.elementAndContent = {
       element: this,
       dropdownID: this.ID,
-      activesIndex: this.defaultActiveItems,
+      activesIndex: this.dropdownMenu.defaultActive,
       title: this.dropdownTitle.native.innerText,
       itemsValue,
       translation: false,
@@ -201,7 +205,7 @@ export class DropdownDirective
   }
 
   /**
-   * Invalidate dropdown (red border) in case of not meeting the requirements.
+   * Invalidate dropdown (red outline) in case of not meeting the requirements.
    */
   setInvalidDropdown(invalid: boolean) {
     this.invalid = invalid;
@@ -240,7 +244,7 @@ export class DropdownDirective
   }
 
   /**
-   * Pressing Enter on searchbar triggers the search and click method of the respective element.
+   * Pressing Enter on searchbar | dropdown triggers the search and click method of the respective element.
    */
   private callClickOnItem(e: Event) {
     const index = this.childItems.findIndex((item) => item.activate);
@@ -311,9 +315,8 @@ export class DropdownDirective
     }
   }
 
-  setTitleColor(defaultColor: string, color: string) {
-    this.defaultColor = defaultColor;
-    this.titleColor = color;
+  setTitleColor(color: string) {
+    this.secondaryTitleColor = color;
   }
 
   updateTitleOnTop(title: string) {
@@ -321,11 +324,8 @@ export class DropdownDirective
     this.pTitleOnTop.innerText = title;
   }
 
-  /**
-   * In case of translation and zero active items, update the title on top.
-   */
   updateTitleDisplay(animation = this.secondaryTitleAnimation) {
-    if (!this.displayTitle) return;
+    if (!this.displaySecondaryTitle) return;
 
     // from translation service
     if (this.listOfElements.length === 0 && !this.open) {
@@ -353,10 +353,10 @@ export class DropdownDirective
   }
 
   /**
-   * In case of searchbar, display back all items.
+   * In case of an active search in the searchbar, display back all items.
    */
   private displayAllItems() {
-    if (!this.searchbar) return;
+    if (!this.searchbarElement?.value) return;
 
     for (const item of this.childItems) {
       item.native.style.display = 'flex';
@@ -370,26 +370,25 @@ export class DropdownDirective
   }
 
   private toggleDisplayBadge(shouldHide: boolean) {
-    const badge =
-      this.dropdownTitleContainer.native.querySelector<HTMLSpanElement>(
-        '.ngx-badge'
-      );
+    const badge = this.dropdownTitleContainer.badgeHasBeenAdded;
 
     if (badge) {
-      badge.style.display = shouldHide ? 'none' : 'block';
+      this.dropdownTitleContainer.badgeEl.style.display = shouldHide
+        ? 'none'
+        : 'block';
     }
   }
 
   private onItemSelection() {
-    this.visibilityChange.pipe(takeUntil(this.destroy)).subscribe((visible) => {
+    // .pipe(takeUntil(this.destroy))
+    this.visibilityChange.subscribe((visible) => {
       this.open = visible;
       this.displayAllItems();
       this.toggleDisplayBadge(visible);
-
-      if (!this.displayTitle) return;
+      this.dropdownTitle.setMinHeightOnTitle();
 
       if (visible) {
-        this.dropdownTitle.native.innerText = '';
+        this.dropdownTitle.titleContent = '';
         this.emptySearchbar();
         this.updateTitleDisplay();
       } else {
@@ -399,7 +398,7 @@ export class DropdownDirective
         this.updateSearchbarValue();
         this.displaySelectedItemInTitle();
 
-        if (this.listOfElements.length === 0) {
+        if (this.pTitleOnTop && this.listOfElements.length === 0) {
           this.pTitleOnTop.innerText = '';
         }
       }
@@ -407,18 +406,16 @@ export class DropdownDirective
   }
 
   private onSelectionChange() {
-    this.selectionChange
-      .pipe(takeUntil(this.destroy))
-      .subscribe((selection) => {
-        this.updateTitleAndList(selection);
-        this.updateActiveIndexService(selection);
-        this.resetToDefaultTitle();
-        this.displayAllItems();
-        this.updateElementsKeyboardSupport(this.childItems);
-        this.resetSelectionPositionIfSearch();
-        this.toggleDisplayBadge(false);
-        this.cd.markForCheck();
-      });
+    this.selectionChange.subscribe((selection) => {
+      this.updateTitleAndList(selection);
+      this.updateActiveIndexService(selection);
+      this.resetToDefaultTitleNoSecondaryTitle();
+      this.displayAllItems();
+      this.updateElementsKeyboardSupport(this.childItems);
+      this.resetSelectionPositionIfSearch();
+      this.toggleDisplayBadge(false);
+      this.cd.markForCheck();
+    });
   }
 
   private resetSelectionPositionIfSearch() {
@@ -437,11 +434,8 @@ export class DropdownDirective
     }
   }
 
-  /**
-   * if option of disabling the title, à vérifier
-   */
-  resetToDefaultTitle() {
-    if (!this.displayTitle && this.listOfElements.length === 0) {
+  private resetToDefaultTitleNoSecondaryTitle() {
+    if (!this.displaySecondaryTitle && this.listOfElements.length === 0) {
       this.dropdownTitle.titleContent = this.defaultTitle;
     }
   }
@@ -490,6 +484,7 @@ export class DropdownDirective
   @HostListener('keydown.enter', ['$event'])
   onEnter(e: Event) {
     if (this.open) {
+      // keyboard navigation
       this.callClickOnItem(e);
       return;
     }
@@ -544,14 +539,17 @@ export class DropdownDirective
       rest = currentIndex - 1;
     }
 
-    const height = this.dropdownMenu.scrollHeight(rest, this.itemsKeyboardNav);
+    const height = this.dropdownMenu.computeTotalHeight(
+      rest,
+      this.itemsKeyboardNav
+    );
 
     this.scrollIndex = rest;
     this.dropdownMenu.native.scrollTo({ top: height });
   }
 
   /**
-   * Handle keyboard navigation, put focus and class on active element.
+   * Handle keyboard navigation, set class on active element.
    */
   private keyboardNavigation(direction: 'up' | 'down') {
     const prev = this.currentIndexKeyboardItem(this.keyboardIndex - 1);
@@ -572,6 +570,7 @@ export class DropdownDirective
   @HostListener('keydown.escape', ['$event'])
   onEscape() {
     this.onClick();
+    this.native.blur();
   }
 
   @HostListener('document:click')
@@ -583,10 +582,7 @@ export class DropdownDirective
           return !this.element.nativeElement.contains(event.target as Node);
         }),
         switchMap((down) => {
-          return this.mouseUp$.pipe(
-            take(1),
-            filter((up) => down.target === up.target)
-          );
+          return this.mouseUp$.pipe(filter((up) => down.target === up.target));
         }),
         takeUntil(this.notifierEndSub)
       )
@@ -609,7 +605,6 @@ export class DropdownDirective
   }
 
   ngOnDestroy() {
-    this.destroy.next();
     this.dropdownService.removeDropdownFromList(this.ID);
   }
 }

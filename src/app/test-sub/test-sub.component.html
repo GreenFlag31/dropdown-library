@@ -1,0 +1,23 @@
+<section class="test-container">
+  <p>test-sub works!</p>
+  <button (click)="getAllDropdowns()">Get All DD</button>
+  <div ngxDropdown class="colors" #RGBA>
+    <div
+      ngxDropdownTitleContainer
+      mainTitleColor="#000"
+      secondarytitleColor="deeppink"
+    >
+      <h4 ngxDropdownTitle>Colors</h4>
+    </div>
+    <div
+      ngxDropdownMenu
+      [defaultActiveItems]="[0]"
+      animation="expand"
+      [animationTimingMs]="200"
+    >
+      <p ngxDropdownItem>Red</p>
+      <p ngxDropdownItem>Green</p>
+      <p ngxDropdownItem>Blue</p>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,10 @@
+.test-container {
+  max-width: 65rem;
+  margin: auto;
+}
+.colors {
+  padding: 0.5rem;
+  background: rgb(231, 231, 231);
+  width: 10rem;
+  margin-top: 2rem;
+}
