@@ -25,17 +25,8 @@ Add the `DropdownModule` containing all the directives to your module or standal
 This library consists in a set of directives to apply in the template containing each a range of options:
 
 ```html
-<div
-  <span style="color:blue">ngxDropdown</span>
-  selection="multiple"
-  [searchbar]="true"
-  class="selection-container orders"
-  #ingredients
->
-  <div
-    ngxDropdownTitleContainer
-    secondarytitleColor="red"
-  >
+<div ngxDropdown selection="multiple" [searchbar]="true" class="selection-container orders" #ingredients>
+  <div ngxDropdownTitleContainer secondarytitleColor="red">
     <h4 ngxDropdownTitle>Ingredients</h4>
   </div>
   <div ngxDropdownMenu animation="going-down 0.3s" [elementsVisible]="5">
