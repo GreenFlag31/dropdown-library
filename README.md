@@ -14,7 +14,7 @@ Live demonstration of the ngx-modal-ease library [here](https://greenflag31.gith
 
 You can install the library using the following command:
 
-```shell
+```bash
 npm i ngx-dropdown-ease
 ```
 
