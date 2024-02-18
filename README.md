@@ -63,7 +63,7 @@ This library consists in a set of directives to apply in the template containing
 | ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                                        |
 | ngxDropdownItem           | disable                   | false    | Disable the item for selection.                                                                                            |
 
-```
+```typescript
 StyleSelection {
   backgroundColor?: string;
   color?: string;
@@ -76,17 +76,17 @@ StyleSelection {
 
 This library exposes a `DropdownService` that contains the following API:
 
-```
-<!-- Initialise translation at start -->
+```javascript
+// Initialise translation at start
 initialise(translatedValues: TranslatedValues[]);
 
-<!-- Update translation at runtime -->
+// Update translation at runtime
 update(translatedValues: TranslatedValues[]);
 
-<!-- Get the list of your items text content for translation  -->
+// Get the list of your items text content for translation
 getListOfElements(dropdown: ElementRef);
 
-<!-- Get all active dropdowns and content  -->
+// Get all active dropdowns and content
 getDropdowns();
 ```
 
@@ -98,8 +98,8 @@ This library supports translation by a third party library of your choice. The f
 
 Translated values should be provided at start and at language change through the following methods:
 
-```
-<!-- DOM content should be ready -->
+```javascript
+// DOM content should be ready
 ngAfterViewInit() {
   // Initialisation
   this.translateService.onDefaultLangChange.subscribe(() => {
@@ -114,13 +114,13 @@ ngAfterViewInit() {
 
 dropdownsData() {
   const colorsData: TranslatedValues = {
-    <!-- @ViewChild ElementRef to identify the current dropdown -->
+    // @ViewChild ElementRef to identify the current dropdown
     dropdown: this.RGBA,
 
-    <!-- Title text content -->
+    // Title text content
     title: this.translateService.instant('Colors'),
 
-    <!-- Items text content (same as the HTML order) -->
+    // Items text content (same as the HTML order)
     items: [
       this.translateService.instant('Red'),
       this.translateService.instant('Green'),
@@ -135,13 +135,13 @@ dropdownsData() {
 
 Provide an object respecting following interface:
 
-```
+```typescript
 interface TranslatedValues {
-  <!-- The @ViewChild ElementRef that you attached to the ngxDropdown directive  -->
+  // The @ViewChild ElementRef that you attached to the ngxDropdown directive
   dropdown: ElementRef;
-  <!-- The ngxDropdownTitle title text content -->
+  // The ngxDropdownTitle title text content
   title: string;
-  <!-- All the ngxDropdownItem text content  -->
+  // All the ngxDropdownItem text content
   items: string[];
 }
 ```
@@ -161,7 +161,7 @@ opening position if there is not enough space for the items to be
 displayed. If you use built-in animations, they will be adjusted
 accordingly to ensure that the effect remains consistent.
 
-```
+```css
 @keyframes going-down {
   from {
     transform: translateY(-5%);
