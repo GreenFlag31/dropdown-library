@@ -521,7 +521,7 @@ export class DropdownDirective
   }
 
   /**
-   * Custom scrolling to the active element
+   * Custom scrolling to the active element.
    * Because the focus stays on the searchbox, a custom scroll has to be implemented.
    */
   private scrollToActiveElement(direction: 'up' | 'down') {
