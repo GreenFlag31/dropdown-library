@@ -63,7 +63,7 @@ This library consists in a set of directives to apply in the template containing
 | ngxDropdownMenu           | iconColor                 | green    | Define the color of the check mark.                                                                                        |
 | ngxDropdownItem           | disable                   | false    | Disable the item for selection.                                                                                            |
 
-```typescript
+```javascript
 StyleSelection {
   backgroundColor?: string;
   color?: string;
