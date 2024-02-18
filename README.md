@@ -24,7 +24,7 @@ Add the `DropdownModule` containing all the directives to your module or standal
 
 This library consists in a set of directives to apply in the template containing each a range of options:
 
-```
+```html
 <div
   <span style="color:blue">ngxDropdown</span>
   selection="multiple"
