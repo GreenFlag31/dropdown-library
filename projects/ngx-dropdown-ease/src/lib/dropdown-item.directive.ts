@@ -6,6 +6,7 @@ import {
   HostListener,
   HostBinding,
   AfterContentInit,
+  OnInit,
 } from '@angular/core';
 import { DropdownDirective } from './dropdown.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
@@ -22,6 +23,10 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   private iconSelection: 'check' | StyleSelection = 'check';
   private iconColor = 'green';
   private active = false;
+  private originalBC = '';
+  private originalC = '';
+  private originalBL = '';
+  private originalFW = '';
 
   constructor(
     private element: ElementRef<HTMLElement>,
@@ -43,6 +48,11 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
       // accessibility
       this.native.setAttribute('disabled', 'disabled');
     }
+
+    this.originalBC = this.native.style.backgroundColor;
+    this.originalC = this.native.style.color;
+    this.originalBL = this.native.style.borderLeft;
+    this.originalFW = this.native.style.fontWeight;
   }
 
   get height() {
@@ -68,15 +78,12 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
 
   onItemSelection() {
     if (this.isOfTypeSelectItem(this.iconSelection)) {
-      this.element.nativeElement.style.backgroundColor =
+      this.native.style.backgroundColor =
         this.iconSelection['backgroundColor'] || '';
-      this.element.nativeElement.style.color =
-        this.iconSelection['color'] || '';
-      this.element.nativeElement.style.borderLeft =
-        this.iconSelection['borderLeft'] || '';
-      this.element.nativeElement.style.fontWeight =
-        this.iconSelection['fontWeight'] || '';
-      this.element.nativeElement.classList.add('ngx-custom');
+      this.native.style.color = this.iconSelection['color'] || '';
+      this.native.style.borderLeft = this.iconSelection['borderLeft'] || '';
+      this.native.style.fontWeight = this.iconSelection['fontWeight'] || '';
+      this.native.classList.add('ngx-custom');
       return;
     }
 
@@ -90,7 +97,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   }
 
   private insertCheckedSvg() {
-    this.element.nativeElement.insertAdjacentHTML(
+    this.native.insertAdjacentHTML(
       'beforeend',
       `<svg
       xmlns="http://www.w3.org/2000/svg"
@@ -127,10 +134,10 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   private resetStyle(element: HTMLElement | null) {
     if (!element) return;
 
-    element.style.backgroundColor = this.native.style.backgroundColor;
-    element.style.color = this.native.style.color;
-    element.style.borderLeft = this.native.style.borderLeft;
-    element.style.fontWeight = this.native.style.fontWeight;
+    element.style.backgroundColor = this.originalBC;
+    element.style.color = this.originalC;
+    element.style.borderLeft = this.originalBL;
+    element.style.fontWeight = this.originalFW;
 
     element.classList.remove('ngx-custom');
   }
@@ -141,17 +148,13 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     if (this.disable) return;
 
     const checkIcon = this.native.querySelector<HTMLElement>('.ngx-checked');
-    const customStyleCheckedEl =
-      this.native.querySelector<HTMLElement>('.ngx-custom');
+    const customStyleCheckedEl = this.native.classList.contains('ngx-custom');
 
     const selection = this.native.innerText || '';
     this.dropdown.selectionChange.next(selection);
 
-    if (
-      this.native.contains(checkIcon) ||
-      this.native.contains(customStyleCheckedEl)
-    ) {
-      this.removeSelectionStyle(checkIcon, customStyleCheckedEl);
+    if (checkIcon || customStyleCheckedEl) {
+      this.removeSelectionStyle(checkIcon, this.native);
     } else {
       this.singleSelection();
       this.onItemSelection();

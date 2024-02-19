@@ -77,11 +77,8 @@ StyleSelection {
 This library exposes a `DropdownService` that contains the following API:
 
 ```javascript
-// Initialise translation at start
-initialise(translatedValues: TranslatedValues[]);
-
-// Update translation at runtime
-update(translatedValues: TranslatedValues[]);
+// Translate content
+translate(translatedValues: TranslatedValues[]);
 
 // Get the list of your items text content for translation
 getListOfElements(dropdown: ElementRef);
@@ -103,12 +100,12 @@ Translated values should be provided at start and at language change through the
 ngAfterViewInit() {
   // Initialisation
   this.translateService.onDefaultLangChange.subscribe(() => {
-    this.dropdownService.initialise(this.dropdownsData());
+    this.dropdownService.translate(this.dropdownsData());
   });
 
   // Changing language at runtime
   this.translateService.onLangChange.subscribe(() => {
-    this.dropdownService.update(this.dropdownsData());
+    this.dropdownService.translate(this.dropdownsData());
   });
 }
 
@@ -128,6 +125,7 @@ dropdownsData() {
     ],
   };
 
+  // ...add here other content for translation
 
   return [colorsData];
 }
@@ -135,7 +133,7 @@ dropdownsData() {
 
 Provide an object respecting following interface:
 
-```typescript
+```javascript
 interface TranslatedValues {
   // The @ViewChild ElementRef that you attached to the ngxDropdown directive
   dropdown: ElementRef;

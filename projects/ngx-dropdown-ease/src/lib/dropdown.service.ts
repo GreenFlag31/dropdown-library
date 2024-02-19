@@ -19,23 +19,8 @@ export class DropdownService {
    * }
    * ```
    */
-  initialise(translatedValues: TranslatedValues[]) {
-    this.internalDropdownService.initialise(translatedValues);
-  }
-
-  /**
-   * Update the translation at runtime.
-   * @param translatedValues
-   * ```
-   * interface TranslatedValues {
-   *  dropdown: ElementRef;
-   *  title: string;
-   *  items: string[];
-   * }
-   * ```
-   */
-  update(translatedValues: TranslatedValues[]) {
-    this.internalDropdownService.update(translatedValues);
+  translate(translatedValues: TranslatedValues[]) {
+    this.internalDropdownService.translate(translatedValues);
   }
 
   /**

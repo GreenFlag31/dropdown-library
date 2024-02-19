@@ -3,6 +3,7 @@
   cursor: pointer;
   user-select: none;
   padding: 1rem;
+  max-width: 100%;
 }
 .ngx-dropdown.ngx-disabled-dropdown {
   cursor: not-allowed;

@@ -49,12 +49,12 @@ export class MainComponent {
   ngAfterViewInit() {
     // Initialisation
     this.translateService.onDefaultLangChange.subscribe(() => {
-      this.dropdownService.initialise(this.dropdownsData());
+      this.dropdownService.translate(this.dropdownsData());
     });
 
     // Changing language at runtime
     this.translateService.onLangChange.subscribe(() => {
-      this.dropdownService.update(this.dropdownsData());
+      this.dropdownService.translate(this.dropdownsData());
     });
   }
 

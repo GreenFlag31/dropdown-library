@@ -131,29 +131,31 @@ export class DropdownDirective
   }
 
   ngAfterContentInit() {
-    this.populateDropdownsInTheService();
-    this.native.tabIndex = 0;
     this.itemsKeyboardNav = this.dropdownItems.toArray();
     this.childItems = this.dropdownItems.toArray();
     this.displaySecondaryTitle =
       this.dropdownTitleContainer.displaySecondaryTitle;
     this.secondaryTitleAnimation =
       this.dropdownTitleContainer.animationSecondaryTitle;
-    this.defaultActiveItems = this.dropdownMenu.defaultActive;
     this.defaultTitle = this.dropdownTitle.titleContent;
     this.secondaryTitleColor = this.dropdownTitleContainer.secondaryTitleC;
+    this.defaultActiveItems = this.dropdownMenu.defaultActive;
+    this.populateDropdownsInTheService();
   }
 
   /**
    * Get the padding for title left value position.
    */
   ngAfterViewInit() {
+    this.native.tabIndex = 0;
     this.createLabelMinNumberSelection();
     const computedStyle = window.getComputedStyle(this.native);
     this.paddingLeft = computedStyle.getPropertyValue('padding-left');
 
     this.addTitleOnTop();
     this.createSearchbar();
+    this.setDefaultsActiveItems();
+    this.updateTitleDisplay(false);
   }
 
   private addTitleOnTop() {

@@ -9,15 +9,7 @@ export class InternalDropdownService {
   dropdownID = 0;
   private dropdownsData: DropdownsData[] = [];
 
-  initialise(translatedValues: TranslatedValues[]) {
-    this.populateDropdownsData(translatedValues);
-
-    for (const dropdown of this.dropdownsData) {
-      this.initialiseLabelsAndContent(dropdown);
-    }
-  }
-
-  update(translatedValues: TranslatedValues[]) {
+  translate(translatedValues: TranslatedValues[]) {
     this.populateDropdownsData(translatedValues);
 
     for (const dropdown of this.dropdownsData) {
@@ -63,25 +55,6 @@ export class InternalDropdownService {
     }
   }
 
-  private initialiseLabelsAndContent(dropdownContent: DropdownsData) {
-    if (!dropdownContent.translation) return;
-
-    const arrayItems = dropdownContent.element.dropdownItems.toArray();
-    const dropdown = dropdownContent.element;
-
-    // update title and list
-    dropdown.setDefaultsActiveItems();
-
-    // update content
-    for (let i = 0; i < dropdownContent.itemsValue.length; i++) {
-      const element = dropdownContent.itemsValue[i];
-      arrayItems[i].updateValueTranslation(element);
-    }
-
-    dropdown.dropdownMenu.refreshHeightOfContent();
-    dropdown.updateTitleDisplay(false);
-  }
-
   private updateLabelsAndContent(dropdownContent: DropdownsData) {
     if (!dropdownContent.translation) return;
 
@@ -94,7 +67,7 @@ export class InternalDropdownService {
       const element = dropdownContent.itemsValue[i];
       arrayItems[i].updateValueTranslation(element);
 
-      // update labels (not at initialisation)
+      // update labels
       const activeIndex = dropdownContent.activesIndex.indexOf(i);
       if (activeIndex !== -1) {
         dropdown.updateTitleAndList(element);
@@ -105,6 +78,7 @@ export class InternalDropdownService {
     dropdown.updateTitleValue(dropdownContent.title);
     // update searchbar
     dropdown.updateSearchbarValue();
+    // update height, content might have changed
     dropdown.dropdownMenu.refreshHeightOfContent();
     dropdown.updateTitleDisplay(false);
   }
