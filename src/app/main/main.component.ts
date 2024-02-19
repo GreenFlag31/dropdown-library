@@ -29,11 +29,11 @@ export class MainComponent {
   countries = [
     {
       name: 'English',
-      img: '../assets/pictures/England.png',
+      img: 'assets/pictures/England.png',
     },
     {
       name: 'French',
-      img: '../assets/pictures/France.png',
+      img: 'assets/pictures/France.png',
     },
   ];
 
