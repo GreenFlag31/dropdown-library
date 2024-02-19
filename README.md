@@ -1,14 +1,14 @@
-# ngx-modal-ease
+# ngx-dropdown-ease
 
 # Description
 
-ngx-modal-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, keyboard navigation, and many other options.
+ngx-dropdown-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, keyboard navigation, and many other options.
 
 Support Angular version starts at v17.
 
 # Demo
 
-Live demonstration of the ngx-modal-ease library [here](https://greenflag31.github.io/dropdown-library/ngx-dropdown-ease).
+Live demonstration of the ngx-dropdown-ease library [here](https://greenflag31.github.io/dropdown-library/ngx-dropdown-ease).
 
 # Installation
 
