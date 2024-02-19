@@ -19,10 +19,15 @@
   background: #e6e6e6;
   margin-top: 1rem;
 }
-.selection-container.orders {
+.selection-container.orders,
+.selection-container.casino {
   width: 15rem;
   padding: 0.8rem 0.6rem;
   border-radius: 0.3rem;
+}
+.selection-container.casino {
+  border-radius: 0;
+  padding: 0.7rem;
 }
 .multiple-selection {
   background-color: #00022c;
@@ -30,11 +35,12 @@
   padding: 2rem 1rem;
 }
 .multiple-selection,
-.habits-container {
+.habits-container,
+.orders-container {
   margin-top: 7rem;
   margin-bottom: 7rem;
 }
-.orders-container {
+.casino-container {
   margin-bottom: 20rem;
 }
 
@@ -45,6 +51,16 @@
 .coding .ngx-dropdown-menu {
   background: #00316cc1;
   color: #fff;
+}
+.casino .ngx-dropdown-menu::-webkit-scrollbar-thumb {
+  background: rgba(221, 221, 221, 0.582);
+}
+.casino .ngx-dropdown-item {
+  transition: 0.5s;
+}
+.casino .ngx-dropdown-item:hover {
+  background: none;
+  color: deeppink;
 }
 .coding .ngx-dropdown-item:hover {
   background: #2980b9;
@@ -109,4 +125,30 @@ main {
 }
 .selection-container.habits {
   background: aliceblue;
+}
+.casino-menu {
+  background: no-repeat url("../../assets/pictures/casino.png");
+  color: #fff;
+  background-position: top;
+  background-size: 150% 115%;
+  /* background: url("../../assets/pictures/casino.png");
+  color: #fff;
+  background-position: top -68px right -145px;
+  background-size: 216% 130%; */
+}
+
+.casino {
+  background: no-repeat url("../../assets/pictures/casino.png");
+  color: #fff;
+  background-position: top;
+}
+.casino-title {
+  background-image: linear-gradient(to right, #fa00ff, #ee0000);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  text-align: center;
+  font-family: Allura;
+  font-size: 1.5rem;
+  font-weight: 900;
 }

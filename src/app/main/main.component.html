@@ -176,5 +176,35 @@
         </div>
       </div>
     </section>
+
+    <section class="casino-container">
+      <h2 class="dropdown-main-title">Styling</h2>
+      <p>With a CSS class based approach, styling possibilities are yours.</p>
+      <div ngxDropdown selection="multiple" class="selection-container casino">
+        <div
+          ngxDropdownTitleContainer
+          secondarytitleColor="#fff"
+          iconColor="#fff"
+        >
+          <h4 ngxDropdownTitle class="casino-title">Casino</h4>
+        </div>
+        <div
+          ngxDropdownMenu
+          class="casino-menu"
+          animation="none"
+          [elementsVisible]="5"
+          iconColor="red"
+        >
+          <p ngxDropdownItem>Ace</p>
+          <p ngxDropdownItem>King</p>
+          <p ngxDropdownItem>Queen</p>
+          <p ngxDropdownItem>Jack</p>
+          <p ngxDropdownItem>Joker</p>
+          <p ngxDropdownItem>Roulette</p>
+          <p ngxDropdownItem>Blackjack</p>
+          <p ngxDropdownItem>Poker</p>
+        </div>
+      </div>
+    </section>
   </main>
 </div>

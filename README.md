@@ -141,12 +141,12 @@ interface TranslatedValues {
   dropdown: ElementRef;
   // The ngxDropdownTitle title text content
   title: string;
-  // All the ngxDropdownItem text content
+  // All the ngxDropdownItem text content*
   items: string[];
 }
 ```
 
-If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the translation method of your translation library (here, `this.translateService.instant(value)`). This method should be synchronous.
+\*If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you have provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the synchronous translation method of your library (here, `this.translateService.instant(value)`).
 
 Translating content requires an extra step, but this is by far the cleanest solution to handle an asynchronous third party library.
 
@@ -230,7 +230,7 @@ This library offers a basic style customisation API. A class based CSS approach 
 
 Following example changes the background color and the color of the menu:
 
-```
+```css
 .coding .ngx-dropdown-menu {
   background: #00316cc1;
   color: #fff;
