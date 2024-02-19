@@ -34,7 +34,7 @@ export class InternalDropdownService {
 
   private findCurrentIndexDropdown(element: HTMLElement) {
     return this.dropdownsData.findIndex(
-      (dropdown) => dropdown.element.reference.nativeElement === element
+      (dropdown) => dropdown.element.native === element
     );
   }
 

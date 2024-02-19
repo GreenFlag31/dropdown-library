@@ -6,11 +6,11 @@ import {
   HostListener,
   HostBinding,
   AfterContentInit,
-  OnInit,
 } from '@angular/core';
 import { DropdownDirective } from './dropdown.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
 import { StyleSelection } from './interface';
+import { InternalDropdownService } from './internalDropdown.service';
 
 @Directive({
   selector: '[ngxDropdownItem]',
@@ -31,7 +31,8 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   constructor(
     private element: ElementRef<HTMLElement>,
     private dropdown: DropdownDirective,
-    private dropdownMenu: DropdownMenuDirective
+    private dropdownMenu: DropdownMenuDirective,
+    private dropdownService: InternalDropdownService
   ) {}
 
   get native() {
@@ -152,6 +153,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
 
     const selection = this.native.innerText || '';
     this.dropdown.selectionChange.next(selection);
+    this.dropdown.lastSelectionOnClick = true;
 
     if (checkIcon || customStyleCheckedEl) {
       this.removeSelectionStyle(checkIcon, this.native);

@@ -111,10 +111,6 @@ export class DropdownDirective
     return this.element.nativeElement;
   }
 
-  get reference() {
-    return this.element;
-  }
-
   get dropdownID() {
     return this.ID;
   }
@@ -517,6 +513,12 @@ export class DropdownDirective
     return this.itemsKeyboardNav[index];
   }
 
+  private lastSelectionClick = false;
+
+  set lastSelectionOnClick(clicked: boolean) {
+    this.lastSelectionClick = clicked;
+  }
+
   /**
    * Custom scrolling to the active element.
    * Because the focus stays on the searchbox, a custom scroll has to be implemented.
@@ -527,8 +529,14 @@ export class DropdownDirective
 
     const currentIndex = this.keyboardIndex + 1;
 
-    if (direction === 'down' && currentIndex <= maxElementsVisible) {
-      this.dropdownMenu.native.scrollTo({ top: 0 });
+    if (
+      direction === 'down' &&
+      currentIndex - this.scrollIndex <= maxElementsVisible
+    ) {
+      if (this.lastSelectionClick) {
+        // if last item was selected with the mouse
+        this.dropdownMenu.native.scrollTo({ top: 0 });
+      }
       return;
     }
 
@@ -567,6 +575,7 @@ export class DropdownDirective
     }
 
     current.activation = true;
+    this.lastSelectionOnClick = false;
   }
 
   @HostListener('keydown.escape', ['$event'])
