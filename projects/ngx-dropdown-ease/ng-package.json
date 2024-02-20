@@ -3,5 +3,6 @@
   "dest": "../../dist/ngx-dropdown-ease",
   "lib": {
     "entryFile": "src/public-api.ts"
-  }
+  },
+  "assets": ["src/lib/dropdown.css"]
 }

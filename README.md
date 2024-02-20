@@ -18,6 +18,9 @@ You can install the library using the following command:
 npm i ngx-dropdown-ease
 ```
 
+Import the stylesheet in your `styles.css`:
+`@import "../node_modules/ngx-dropdown-ease/src/lib/dropdown.css";`
+
 Add the `DropdownModule` to your module or standalone component.
 
 # Usage
