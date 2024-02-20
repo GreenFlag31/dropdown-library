@@ -145,7 +145,8 @@ main {
   color: #fff;
   background-position: top;
 }
-.casino-title {
+.casino-title,
+.author a {
   background-image: linear-gradient(to right, #fa00ff, #ee0000);
   background-clip: text;
   -webkit-background-clip: text;
@@ -153,4 +154,8 @@ main {
   font-family: Allura;
   font-size: 1.5rem;
   font-weight: 900;
+}
+.author {
+  display: flex;
+  justify-content: center;
 }
