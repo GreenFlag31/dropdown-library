@@ -54,6 +54,22 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     this.originalC = this.native.style.color;
     this.originalBL = this.native.style.borderLeft;
     this.originalFW = this.native.style.fontWeight;
+    this.wrapTextContent();
+  }
+
+  private wrapTextContent() {
+    const itemContent = Array.from(this.native.childNodes);
+
+    for (const content of itemContent) {
+      const text = content.textContent?.trim();
+      if (text) {
+        const p = document.createElement('p');
+        p.classList.add('ngx-text');
+        p.innerText = text;
+        p.title = text;
+        content.replaceWith(p);
+      }
+    }
   }
 
   get height() {
