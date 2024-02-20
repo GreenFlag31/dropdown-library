@@ -145,7 +145,9 @@
       <p>
         Navigate with the keyboard arrows <span>&#9650;</span
         ><span>&#9660;</span> to make an element active. Press enter to select,
-        escape to leave.
+        escape to leave. If you have very long item name (first item) it will
+        elegantly adapt the name to its current container and propose a title
+        for accessibility purposes.
       </p>
       <div
         ngxDropdown
@@ -158,7 +160,7 @@
           <h4 ngxDropdownTitle>Ingredients</h4>
         </div>
         <div ngxDropdownMenu animation="none" [elementsVisible]="5">
-          <p ngxDropdownItem>Pepperoni</p>
+          <p ngxDropdownItem>Bio fairtrade Pepperoni</p>
           <p ngxDropdownItem>Mozzarella</p>
           <p ngxDropdownItem>Mushrooms</p>
           <p ngxDropdownItem>Chicken</p>

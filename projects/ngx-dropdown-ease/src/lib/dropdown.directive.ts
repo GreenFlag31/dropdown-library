@@ -373,7 +373,7 @@ export class DropdownDirective
     if (badge) {
       this.dropdownTitleContainer.badgeEl.style.display = shouldHide
         ? 'none'
-        : 'block';
+        : 'flex';
     }
   }
 

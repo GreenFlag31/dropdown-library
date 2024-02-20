@@ -1,14 +1,14 @@
-# ngx-modal-ease
+# ngx-dropdown-ease
 
 # Description
 
-ngx-modal-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, keyboard navigation, and many other options.
+ngx-dropdown-ease is a versatile Angular library providing a simple, performant, and accessible dropdown. This library supports single or multiple items selection, translation, keyboard navigation, and many other options.
 
 Support Angular version starts at v17.
 
 # Demo
 
-Live demonstration of the ngx-modal-ease library [here](https://greenflag31.github.io/dropdown-library/ngx-dropdown-ease).
+Live demonstration of the ngx-dropdown-ease library [here](https://greenflag31.github.io/dropdown-library/ngx-dropdown-ease).
 
 # Installation
 
@@ -45,7 +45,7 @@ This library consists in a set of directives to apply in the template containing
 | ngxDropdown               | selection                 | single   | Selection behavior of the dropdown. Value: 'single' or 'multiple'                                                          |
 | ngxDropdown               | disable                   | false    | Disable the dropdown.                                                                                                      |
 | ngxDropdown               | searchbar                 | false    | Enable a searchbar in the dropdown.                                                                                        |
-| ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number.                                                                    |
+| ngxDropdownTitleContainer | badge                     | false    | Display a badge containing the active selection number. Not available with a searchbar.                                    |
 | ngxDropdownTitleContainer | icon                      | true     | Display the arrow down icon in the title.                                                                                  |
 | ngxDropdownTitleContainer | iconColor                 | #000     | Set the color of the title icon.                                                                                           |
 | ngxDropdownTitleContainer | mainTitleColor            | #000     | Set the color of the main title.                                                                                           |
