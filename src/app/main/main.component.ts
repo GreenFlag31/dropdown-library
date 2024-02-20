@@ -47,6 +47,8 @@ export class MainComponent {
   ) {}
 
   ngAfterViewInit() {
+    console.log('v0.0.1');
+
     // Initialisation
     this.translateService.onDefaultLangChange.subscribe(() => {
       this.dropdownService.translate(this.dropdownsData());

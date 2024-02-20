@@ -10,7 +10,6 @@ import {
 import { DropdownDirective } from './dropdown.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
 import { StyleSelection } from './interface';
-import { InternalDropdownService } from './internalDropdown.service';
 
 @Directive({
   selector: '[ngxDropdownItem]',
@@ -31,12 +30,19 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   constructor(
     private element: ElementRef<HTMLElement>,
     private dropdown: DropdownDirective,
-    private dropdownMenu: DropdownMenuDirective,
-    private dropdownService: InternalDropdownService
+    private dropdownMenu: DropdownMenuDirective
   ) {}
 
   get native() {
     return this.element.nativeElement;
+  }
+
+  get height() {
+    return this.native.clientHeight;
+  }
+
+  set activation(value: boolean) {
+    this.active = value;
   }
 
   ngAfterContentInit() {
@@ -57,6 +63,9 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     this.wrapTextContent();
   }
 
+  /**
+   * Wrap text nodes and add the necessary class to limit its content length.
+   */
   private wrapTextContent() {
     const itemContent = Array.from(this.native.childNodes);
 
@@ -70,14 +79,6 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
         content.replaceWith(p);
       }
     }
-  }
-
-  get height() {
-    return this.native.clientHeight;
-  }
-
-  set activation(value: boolean) {
-    this.active = value;
   }
 
   /**
