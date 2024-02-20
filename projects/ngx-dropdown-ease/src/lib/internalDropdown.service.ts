@@ -78,8 +78,6 @@ export class InternalDropdownService {
     dropdown.updateTitleValue(dropdownContent.title);
     // update searchbar
     dropdown.updateSearchbarValue();
-    // update height, content might have changed
-    dropdown.dropdownMenu.refreshHeightOfContent();
     dropdown.updateTitleDisplay(false);
   }
 

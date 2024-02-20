@@ -85,6 +85,7 @@ export class DropdownDirective
   private paddingLeft = '';
   private scrollIndex = 0;
   private secondaryTitleAnimation = true;
+  private lastSelectionClick = false;
 
   @ContentChild(DropdownTitleContainerDirective)
   dropdownTitleContainer!: DropdownTitleContainerDirective;
@@ -117,6 +118,10 @@ export class DropdownDirective
 
   get currentNumberOfItemsSelected() {
     return this.dropdownTitleContainer.selectionNumber;
+  }
+
+  set lastSelectionOnClick(clicked: boolean) {
+    this.lastSelectionClick = clicked;
   }
 
   ngOnInit() {
@@ -217,7 +222,7 @@ export class DropdownDirective
   }
 
   /**
-   * Create searchbar and replace dropdown titel with it.
+   * Create searchbar and replace dropdown title with it.
    */
   private createSearchbar() {
     if (!this.searchbar) return;
@@ -242,7 +247,7 @@ export class DropdownDirective
   }
 
   /**
-   * Pressing Enter on searchbar | dropdown triggers the search and click method of the respective element.
+   * Pressing Enter on searchbar or dropdown triggers the search and click method of the respective element.
    */
   private callClickOnItem(e: Event) {
     const index = this.childItems.findIndex((item) => item.activate);
@@ -313,15 +318,6 @@ export class DropdownDirective
     }
   }
 
-  setTitleColor(color: string) {
-    this.secondaryTitleColor = color;
-  }
-
-  updateTitleOnTop(title: string) {
-    if (!this.pTitleOnTop) return;
-    this.pTitleOnTop.innerText = title;
-  }
-
   updateTitleDisplay(animation = this.secondaryTitleAnimation) {
     if (!this.displaySecondaryTitle) return;
 
@@ -377,8 +373,10 @@ export class DropdownDirective
     }
   }
 
+  /**
+   * Subject triggered on open / close of the menu.
+   */
   private onItemSelection() {
-    // .pipe(takeUntil(this.destroy))
     this.visibilityChange.subscribe((visible) => {
       this.open = visible;
       this.displayAllItems();
@@ -403,6 +401,9 @@ export class DropdownDirective
     });
   }
 
+  /**
+   * Subject triggered on item selection.
+   */
   private onSelectionChange() {
     this.selectionChange.subscribe((selection) => {
       this.updateTitleAndList(selection);
@@ -513,12 +514,6 @@ export class DropdownDirective
     return this.itemsKeyboardNav[index];
   }
 
-  private lastSelectionClick = false;
-
-  set lastSelectionOnClick(clicked: boolean) {
-    this.lastSelectionClick = clicked;
-  }
-
   /**
    * Custom scrolling to the active element.
    * Because the focus stays on the searchbox, a custom scroll has to be implemented.
@@ -584,13 +579,16 @@ export class DropdownDirective
     this.native.blur();
   }
 
+  /**
+   * Only a complete click outside will trigger a menu close.
+   */
   @HostListener('document:click')
   onClickOutside() {
     this.mouseDown$
       .pipe(
         filter(() => this.open && !this.disable),
         filter((event) => {
-          return !this.element.nativeElement.contains(event.target as Node);
+          return !this.native.contains(event.target as Node);
         }),
         switchMap((down) => {
           return this.mouseUp$.pipe(filter((up) => down.target === up.target));

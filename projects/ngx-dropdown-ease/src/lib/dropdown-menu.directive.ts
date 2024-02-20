@@ -113,10 +113,6 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
     }
   }
 
-  refreshHeightOfContent() {
-    this.heightOfContent = this.computeHeightContent();
-  }
-
   private computeOnceHeightOfContent() {
     this.heightOfContent = this.heightOfContent || this.computeHeightContent();
   }
