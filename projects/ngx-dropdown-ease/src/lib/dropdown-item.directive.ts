@@ -168,7 +168,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     const checkIcon = this.native.querySelector<HTMLElement>('.ngx-checked');
     const customStyleCheckedEl = this.native.classList.contains('ngx-custom');
 
-    const selection = this.native.innerText || '';
+    const selection = this.native.innerText;
     this.dropdown.selectionChange.next(selection);
     this.dropdown.lastSelectionOnClick = true;
 

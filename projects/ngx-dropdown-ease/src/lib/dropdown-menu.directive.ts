@@ -81,7 +81,7 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
 
   @HostListener('mouseenter')
   onEnter() {
-    this.dropdown.removeClassActiveItem();
+    this.dropdown.removeClassActiveItems();
   }
 
   ngOnInit() {

@@ -44,9 +44,9 @@ export class DropdownTitleDirective {
    * Font might not be loaded in ngAfterViewInit
    */
   setMinHeightOnTitle() {
-    if (!this.native.style.minHeight) {
-      this.native.style.minHeight = this.native.clientHeight + 'px';
-    }
+    // if (!this.native.style.minHeight) {
+    this.native.style.minHeight = this.native.clientHeight + 'px';
+    // }
   }
 }
 
@@ -251,6 +251,7 @@ export class DropdownDirective
    */
   private callClickOnItem(e: Event) {
     const index = this.childItems.findIndex((item) => item.activate);
+
     if (index === -1) return;
     this.childItems[index].onClick(e);
   }
@@ -311,10 +312,11 @@ export class DropdownDirective
 
   updateSearchbarValue() {
     if (this.searchbarElement) {
-      const text =
-        [...this.listOfElements].reverse().join(', ') || this.defaultTitle;
+      const text = this.reversedOrderSelection() || this.defaultTitle;
       this.searchbarElement.value = text;
-      this.searchbarElement.title = text;
+      this.searchbarElement.title = `${text} ${
+        this.listOfElements ? `(${this.listOfElements.length})` : ''
+      }`;
     }
   }
 
@@ -339,11 +341,12 @@ export class DropdownDirective
   }
 
   private displaySelectedItemInTitle() {
-    const text =
-      [...this.listOfElements].reverse().join(', ') || this.defaultTitle;
+    const text = this.reversedOrderSelection() || this.defaultTitle;
 
     this.dropdownTitle.native.innerText = text;
-    this.dropdownTitle.native.title = text;
+    this.dropdownTitle.native.title = `${text} ${
+      this.listOfElements ? `(${this.listOfElements.length})` : ''
+    } `;
   }
 
   /**
@@ -389,7 +392,7 @@ export class DropdownDirective
         this.updateTitleDisplay();
       } else {
         this.searchbarElement?.blur();
-        this.removeClassActiveItem();
+        this.removeClassActiveItems();
         this.updateElementsKeyboardSupport(this.childItems);
         this.updateSearchbarValue();
         this.displaySelectedItemInTitle();
@@ -413,20 +416,35 @@ export class DropdownDirective
       this.updateElementsKeyboardSupport(this.childItems);
       this.resetSelectionPositionIfSearch();
       this.toggleDisplayBadge(false);
+      this.fillPlaceholderSearchbar();
       this.cd.markForCheck();
     });
   }
 
+  private fillPlaceholderSearchbar() {
+    if (!this.searchbarElement) return;
+
+    this.searchbarElement.placeholder = this.reversedOrderSelection();
+  }
+
   private resetSelectionPositionIfSearch() {
     if (this.searchbarElement?.value) {
-      this.removeClassActiveItem();
+      this.removeClassActiveItems();
       this.searchbarElement.value = '';
     }
+    // Mouse click
     this.searchbarElement?.focus();
   }
 
-  removeClassActiveItem() {
+  private removeClassAllItems() {
+    for (const item of this.childItems) {
+      item.activation = false;
+    }
+  }
+
+  removeClassActiveItems() {
     this.keyboardIndex = -1;
+    this.scrollIndex = 0;
 
     for (const item of this.itemsKeyboardNav) {
       item.activation = false;
@@ -466,10 +484,17 @@ export class DropdownDirective
       }
     }
 
-    const selectionReversed = [...this.listOfElements].reverse().join(', ');
+    const selectionReversed = this.reversedOrderSelection();
 
     this.dropdownTitle.titleContent = selectionReversed;
-    this.dropdownTitle.native.title = selectionReversed;
+    this.dropdownTitle.native.title = `${selectionReversed} (${this.listOfElements.length})`;
+  }
+
+  /**
+   * For UI purposes, show last element selected first.
+   */
+  private reversedOrderSelection() {
+    return [...this.listOfElements].reverse().join(', ');
   }
 
   @HostListener('click', ['$event.currentTarget'])
@@ -557,17 +582,9 @@ export class DropdownDirective
    * Handle keyboard navigation, set class on active element.
    */
   private keyboardNavigation(direction: 'up' | 'down') {
-    const prev = this.currentIndexKeyboardItem(this.keyboardIndex - 1);
     const current = this.currentIndexKeyboardItem(this.keyboardIndex);
-    const next = this.currentIndexKeyboardItem(this.keyboardIndex + 1);
     this.scrollToActiveElement(direction);
-
-    if (prev) {
-      prev.activation = false;
-    }
-    if (next) {
-      next.activation = false;
-    }
+    this.removeClassAllItems();
 
     current.activation = true;
     this.lastSelectionOnClick = false;
