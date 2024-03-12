@@ -29,9 +29,10 @@ export class DropdownService {
 
     for (const dropdown of dropdownsData) {
       const itemsValue: string[] = [];
+      const activesValue: string[] = [];
       const dropdownDirective = dropdown.element;
       const menu = dropdown.element.dropdownMenu;
-      const { activesValue, translation, activesIndex } = dropdown;
+      const { translation, activesIndex } = dropdown;
 
       for (const item of dropdownDirective.dropdownItems) {
         const nativeText = item.native.innerText;
