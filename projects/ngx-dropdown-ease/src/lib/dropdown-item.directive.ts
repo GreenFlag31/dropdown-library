@@ -26,6 +26,7 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   private originalC = '';
   private originalBL = '';
   private originalFW = '';
+  private ID = 0;
 
   constructor(
     private element: ElementRef<HTMLElement>,
@@ -41,6 +42,10 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
     return this.native.clientHeight;
   }
 
+  get itemID() {
+    return this.ID;
+  }
+
   set activation(value: boolean) {
     this.active = value;
   }
@@ -48,6 +53,8 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
   ngAfterContentInit() {
     this.iconSelection = this.dropdownMenu.iconSelection;
     this.iconColor = this.dropdownMenu.iconC;
+    this.ID = this.dropdown.itemID;
+    this.dropdown.dropdownItemID += 1;
   }
 
   ngAfterViewInit() {
@@ -77,19 +84,6 @@ export class DropdownItemDirective implements AfterContentInit, AfterViewInit {
         p.innerText = text;
         p.title = text;
         content.replaceWith(p);
-      }
-    }
-  }
-
-  /**
-   * Updates the text element (translation)
-   */
-  updateValueTranslation(value: string) {
-    const itemContent = Array.from(this.native.childNodes);
-
-    for (const content of itemContent) {
-      if (content.textContent?.trim()) {
-        content.textContent = value;
       }
     }
   }

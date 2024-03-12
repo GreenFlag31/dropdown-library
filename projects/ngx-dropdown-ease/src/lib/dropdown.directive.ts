@@ -32,21 +32,8 @@ export class DropdownTitleDirective {
     return this.element.nativeElement;
   }
 
-  get titleContent() {
+  get titleText() {
     return this.native.innerText;
-  }
-
-  set titleContent(value: string) {
-    this.native.innerText = value;
-  }
-
-  /**
-   * Font might not be loaded in ngAfterViewInit
-   */
-  setMinHeightOnTitle() {
-    // if (!this.native.style.minHeight) {
-    this.native.style.minHeight = this.native.clientHeight + 'px';
-    // }
   }
 }
 
@@ -73,7 +60,7 @@ export class DropdownDirective
   private ID = 0;
   private notifierEndSub = new Subject<void>();
   private displaySecondaryTitle = false;
-  private pTitleOnTop!: HTMLParagraphElement;
+  private secondaryTitle!: HTMLParagraphElement;
   private defaultTitle = '';
   private secondaryTitleColor = '#000';
   private invalid = false;
@@ -86,6 +73,7 @@ export class DropdownDirective
   private scrollIndex = 0;
   private secondaryTitleAnimation = true;
   private lastSelectionClick = false;
+  dropdownItemID = 0;
 
   @ContentChild(DropdownTitleContainerDirective)
   dropdownTitleContainer!: DropdownTitleContainerDirective;
@@ -100,20 +88,20 @@ export class DropdownDirective
     private cd: ChangeDetectorRef
   ) {}
 
-  get default_title() {
-    return this.defaultTitle;
-  }
-
-  set default_title(value: string) {
-    this.defaultTitle = value;
-  }
-
   get native() {
     return this.element.nativeElement;
   }
 
   get dropdownID() {
     return this.ID;
+  }
+
+  get itemID() {
+    return this.dropdownItemID;
+  }
+
+  get selectionList() {
+    return this.listOfElements;
   }
 
   get currentNumberOfItemsSelected() {
@@ -138,7 +126,7 @@ export class DropdownDirective
       this.dropdownTitleContainer.displaySecondaryTitle;
     this.secondaryTitleAnimation =
       this.dropdownTitleContainer.animationSecondaryTitle;
-    this.defaultTitle = this.dropdownTitle.titleContent;
+    this.defaultTitle = this.dropdownTitle.titleText;
     this.secondaryTitleColor = this.dropdownTitleContainer.secondaryTitleC;
     this.defaultActiveItems = this.dropdownMenu.defaultActive;
     this.populateDropdownsInTheService();
@@ -153,19 +141,18 @@ export class DropdownDirective
     const computedStyle = window.getComputedStyle(this.native);
     this.paddingLeft = computedStyle.getPropertyValue('padding-left');
 
-    this.addTitleOnTop();
+    this.addSecondaryTitle();
     this.createSearchbar();
     this.setDefaultsActiveItems();
-    this.updateTitleDisplay(false);
   }
 
-  private addTitleOnTop() {
+  private addSecondaryTitle() {
     if (!this.displaySecondaryTitle) return;
 
-    this.pTitleOnTop = document.createElement('p');
-    this.pTitleOnTop.classList.add('ngx-dropdown-title-top');
-    this.pTitleOnTop.style.color = this.secondaryTitleColor;
-    this.native.prepend(this.pTitleOnTop);
+    this.secondaryTitle = document.createElement('p');
+    this.secondaryTitle.classList.add('ngx-dropdown-title-top');
+    this.secondaryTitle.style.color = this.secondaryTitleColor;
+    this.native.prepend(this.secondaryTitle);
   }
 
   private createLabelMinNumberSelection() {
@@ -181,29 +168,30 @@ export class DropdownDirective
   }
 
   private populateDropdownsInTheService() {
-    const itemsValue = [];
-    for (const item of this.dropdownItems) {
-      itemsValue.push(item.native.innerText);
-    }
+    const activesValue: string[] = [];
+    const defaultActive = this.dropdownMenu.defaultActive;
 
     this.elementAndContent = {
       element: this,
       dropdownID: this.ID,
-      activesIndex: this.dropdownMenu.defaultActive,
+      activesIndex: defaultActive,
       title: this.dropdownTitle.native.innerText,
-      itemsValue,
+      activesValue,
       translation: false,
     };
     this.dropdownService.addActiveDropdownsAndContent(this.elementAndContent);
   }
 
   /**
-   * If no selection, update the main title.
+   * If no selection, update the title placeholder, else the secondary title.
    */
-  updateTitleValue(value: string) {
-    this.defaultTitle = value;
+  updateTitleValue(title: string) {
+    this.defaultTitle = title;
+
     if (this.listOfElements.length === 0) {
-      this.dropdownTitle.titleContent = value;
+      this.dropdownTitleContainer.titleOnPlaceholder = this.defaultTitle;
+    } else {
+      this.secondaryTitle.innerText = this.defaultTitle;
     }
   }
 
@@ -222,7 +210,7 @@ export class DropdownDirective
   }
 
   /**
-   * Create searchbar and replace dropdown title with it.
+   * Create searchbar, prepend the element and hide the original to not lose eventual translation pipes in the template.
    */
   private createSearchbar() {
     if (!this.searchbar) return;
@@ -243,7 +231,8 @@ export class DropdownDirective
       }
     });
 
-    this.dropdownTitle.native.replaceWith(this.searchbarElement);
+    this.dropdownTitleContainer.native.prepend(this.searchbarElement);
+    this.dropdownTitle.native.style.display = 'none';
   }
 
   /**
@@ -258,25 +247,31 @@ export class DropdownDirective
 
   /**
    * Triggered on input change. Update the array of results for keyboard navigation.
+   * Preselect first result if there are results.
    */
   private onSearchbarInputChange() {
     const searchValue = this.searchbarElement!.value.toLowerCase().trim();
-    const children: DropdownItemDirective[] = [];
+    const results: DropdownItemDirective[] = [];
 
     for (const item of this.childItems) {
       const element = item.native;
       const text = element.innerText.toLowerCase();
 
       if (text.includes(searchValue)) {
-        children.push(item);
+        results.push(item);
         element.style.display = 'flex';
       } else {
         element.style.display = 'none';
       }
     }
 
-    this.itemsKeyboardNav = children;
-    this.keyboardIndex = -1;
+    if (results.length > 0) {
+      this.itemsKeyboardNav[0].activation = false;
+      this.itemsKeyboardNav = results;
+      this.itemsKeyboardNav[0].activation = true;
+      this.keyboardIndex = 0;
+      this.cd.markForCheck();
+    }
   }
 
   /**
@@ -295,13 +290,11 @@ export class DropdownDirective
     for (let i = 0; i < arrayDropdownItems.length; i++) {
       const current = arrayDropdownItems[i];
 
-      if (this.defaultActiveItems.indexOf(i) === -1) {
-        continue;
-      }
+      if (!this.defaultActiveItems.includes(i)) continue;
 
-      const content = current.native.innerText || '';
+      const content = current.native.innerText;
       current.onItemSelection();
-      this.updateTitleAndList(content);
+      this.updateList(content);
 
       if (this.selection === 'single') break;
     }
@@ -310,25 +303,24 @@ export class DropdownDirective
     this.dropdownTitleContainer.handleBadge();
   }
 
+  /**
+   * Placeholder and title only available on active selection.
+   */
   updateSearchbarValue() {
     if (this.searchbarElement) {
       const text = this.reversedOrderSelection() || this.defaultTitle;
+
       this.searchbarElement.value = text;
-      this.searchbarElement.title = `${text} ${
-        this.listOfElements ? `(${this.listOfElements.length})` : ''
-      }`;
+      const list = this.listOfElements.length;
+      this.searchbarElement.placeholder = `${list ? text : ''}`;
+      this.searchbarElement.title = `${text}${list > 1 ? ` (${list})` : ''}`;
     }
   }
 
-  updateTitleDisplay(animation = this.secondaryTitleAnimation) {
+  updateSecondaryTitle(animation = this.secondaryTitleAnimation) {
     if (!this.displaySecondaryTitle) return;
 
-    // from translation service
-    if (this.listOfElements.length === 0 && !this.open) {
-      return;
-    }
-
-    this.pTitleOnTop.innerText = this.defaultTitle;
+    this.secondaryTitle.innerText = this.defaultTitle;
 
     const keyframes = [{ left: '-5px' }, { left: this.paddingLeft }];
     const options: KeyframeAnimationOptions = {
@@ -337,16 +329,20 @@ export class DropdownDirective
       easing: 'ease-out',
     };
 
-    this.pTitleOnTop.animate(keyframes, options);
+    this.secondaryTitle.animate(keyframes, options);
   }
 
   private displaySelectedItemInTitle() {
-    const text = this.reversedOrderSelection() || this.defaultTitle;
+    // no title placeholder update in case of a searchbar.
+    if (this.searchbar) return;
 
-    this.dropdownTitle.native.innerText = text;
-    this.dropdownTitle.native.title = `${text} ${
-      this.listOfElements ? `(${this.listOfElements.length})` : ''
-    } `;
+    const text = this.reversedOrderSelection() || this.defaultTitle;
+    const list = this.listOfElements.length;
+
+    this.dropdownTitleContainer.titleOnPlaceholder = text;
+    this.dropdownTitleContainer.placeholder.title = `${text}${
+      list > 1 ? ` (${list})` : ''
+    }`;
   }
 
   /**
@@ -384,12 +380,12 @@ export class DropdownDirective
       this.open = visible;
       this.displayAllItems();
       this.toggleDisplayBadge(visible);
-      this.dropdownTitle.setMinHeightOnTitle();
+      this.dropdownTitleContainer.addMinHeightOnTitlePlaceholder();
 
       if (visible) {
-        this.dropdownTitle.titleContent = '';
+        this.dropdownTitleContainer.titleOnPlaceholder = '';
         this.emptySearchbar();
-        this.updateTitleDisplay();
+        this.updateSecondaryTitle();
       } else {
         this.searchbarElement?.blur();
         this.removeClassActiveItems();
@@ -397,8 +393,8 @@ export class DropdownDirective
         this.updateSearchbarValue();
         this.displaySelectedItemInTitle();
 
-        if (this.pTitleOnTop && this.listOfElements.length === 0) {
-          this.pTitleOnTop.innerText = '';
+        if (this.secondaryTitle && this.listOfElements.length === 0) {
+          this.secondaryTitle.innerText = '';
         }
       }
     });
@@ -409,7 +405,7 @@ export class DropdownDirective
    */
   private onSelectionChange() {
     this.selectionChange.subscribe((selection) => {
-      this.updateTitleAndList(selection);
+      this.updateList(selection);
       this.updateActiveIndexService(selection);
       this.resetToDefaultTitleNoSecondaryTitle();
       this.displayAllItems();
@@ -451,9 +447,12 @@ export class DropdownDirective
     }
   }
 
+  /**
+   * If option of secondary title is not enabled.
+   */
   private resetToDefaultTitleNoSecondaryTitle() {
     if (!this.displaySecondaryTitle && this.listOfElements.length === 0) {
-      this.dropdownTitle.titleContent = this.defaultTitle;
+      this.dropdownTitleContainer.titleOnPlaceholder = this.defaultTitle;
     }
   }
 
@@ -469,7 +468,18 @@ export class DropdownDirective
     );
   }
 
-  updateTitleAndList(selection: string) {
+  /**
+   * Update the content IN PLACE.
+   * activesIndex in the service follows the same order as the listOfElements.
+   */
+  updateTranslationContentInPlace(index: number, text: string) {
+    this.listOfElements.splice(index, 1, text);
+
+    this.updateTitleSelection();
+    this.updateSearchbarValue();
+  }
+
+  updateList(selection: string) {
     if (this.selection === 'multiple') {
       if (this.listOfElements.includes(selection)) {
         this.listOfElements.splice(this.listOfElements.indexOf(selection), 1);
@@ -484,10 +494,20 @@ export class DropdownDirective
       }
     }
 
-    const selectionReversed = this.reversedOrderSelection();
+    this.updateTitleSelection();
+  }
 
-    this.dropdownTitle.titleContent = selectionReversed;
-    this.dropdownTitle.native.title = `${selectionReversed} (${this.listOfElements.length})`;
+  private updateTitleSelection() {
+    // no title placeholder update in case of a searchbar.
+    if (this.searchbar) return;
+
+    const selectionReversed = this.reversedOrderSelection();
+    const list = this.listOfElements.length;
+
+    this.dropdownTitleContainer.titleOnPlaceholder = selectionReversed;
+    this.dropdownTitleContainer.placeholder.title = `${selectionReversed}${
+      list > 1 ? ` (${list})` : ''
+    }`;
   }
 
   /**

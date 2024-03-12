@@ -1,6 +1,6 @@
 {
   "name": "ngx-dropdown-ease",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "peerDependencies": {
     "@angular/common": "^17.0.0",
     "@angular/core": "^17.0.0"
@@ -18,9 +18,9 @@
   "keywords": [
     "Angular",
     "Dropdown",
-    "Accessibility",
-    "Search Dropdown",
-    "Interactive Dropdown"
+    "Menu",
+    "List",
+    "Selection"
   ],
   "sideEffects": false
 }

@@ -1,6 +1,6 @@
-import { ElementRef, Injectable } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { InternalDropdownService } from './internalDropdown.service';
-import { Dropdown, TranslatedValues } from './interface';
+import { Dropdown } from './interface';
 
 @Injectable({
   providedIn: 'root',
@@ -9,41 +9,17 @@ export class DropdownService {
   constructor(private internalDropdownService: InternalDropdownService) {}
 
   /**
-   * Initialise the translation at start.
-   * @param translatedValues
-   * ```
-   * interface TranslatedValues {
-   *  dropdown: ElementRef;
-   *  title: string;
-   *  items: string[];
-   * }
-   * ```
-   */
-  translate(translatedValues: TranslatedValues[]) {
-    this.internalDropdownService.translate(translatedValues);
-  }
-
-  /**
-   * Get the list of the elements of the dropdown.
-   * @param dropdown The ElementRef of the dropdown.
-   * @returns An array of your HTML text elements.
-   * Iterate over and translate its content with your third party library.
-   */
-  getListOfElements(dropdown: ElementRef) {
-    return this.internalDropdownService.getListOfElements(dropdown);
-  }
-
-  /**
    * Get all active dropdowns.
    * @returns An array of Dropdown
    * ```
    * interface Dropdown {
-   *  element: HTMLElement;
-   *  itemsValue: string[];
-   *  activesValue: string[];
-   *  labelMinimumSelection: boolean;
-   *  selection: 'single' | 'multiple';
-   *  translation: boolean;
+   * element: HTMLElement;
+   * itemsValue: string[];
+   * activesValue: string[];
+   * activesIndex: number[];
+   * labelMinimumSelection: boolean;
+   * selection: 'single' | 'multiple';
+   * translation: boolean;
    * }
    * ```
    */
@@ -52,18 +28,24 @@ export class DropdownService {
     const dropdowns: Dropdown[] = [];
 
     for (const dropdown of dropdownsData) {
-      const activesValue: string[] = [];
-      for (const index of dropdown.activesIndex) {
-        activesValue.push(dropdown.itemsValue.at(index) || '');
-      }
-
+      const itemsValue: string[] = [];
+      const dropdownDirective = dropdown.element;
       const menu = dropdown.element.dropdownMenu;
-      const { itemsValue, translation } = dropdown;
+      const { activesValue, translation, activesIndex } = dropdown;
+
+      for (const item of dropdownDirective.dropdownItems) {
+        const nativeText = item.native.innerText;
+        itemsValue.push(nativeText);
+        if (activesIndex.includes(item.itemID)) {
+          activesValue.push(nativeText);
+        }
+      }
 
       dropdowns.push({
         element: dropdown.element.native,
         itemsValue,
         activesValue,
+        activesIndex,
         labelMinimumSelection: menu.minNumberElementsSelection > 0,
         selection: dropdown.element.selection,
         translation,

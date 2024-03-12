@@ -29,6 +29,7 @@ export class DropdownTitleContainerDirective implements OnInit, AfterViewInit {
   private elementsSelected = 0;
   private badgeElement!: HTMLSpanElement;
   private badgeAdded = false;
+  private titlePlaceholder!: HTMLHeadElement;
 
   @ContentChild(DropdownTitleDirective)
   dropdownTitle!: DropdownTitleDirective;
@@ -71,18 +72,56 @@ export class DropdownTitleContainerDirective implements OnInit, AfterViewInit {
     return this.secondaryTitleAnimation;
   }
 
+  get placeholder() {
+    return this.titlePlaceholder;
+  }
+
+  set titleOnPlaceholder(value: string) {
+    // might not be present at first template update
+    if (!this.titlePlaceholder) return;
+    this.titlePlaceholder.innerText = value;
+  }
+
   ngOnInit() {
     this.badgeElement = document.createElement('span');
     this.badgeElement.classList.add('ngx-badge');
     this.native.style.color = this.mainTitleColor;
+    this.dropdown.selectionChange.subscribe(() => this.handleBadge());
   }
 
   ngAfterViewInit() {
     this.addIcon();
+    this.addTitlePlaceholder();
+  }
 
-    this.dropdown.selectionChange.subscribe(() => {
-      this.handleBadge();
+  /**
+   * Add a title placeholder to not lose eventual translate pipes in the template and hide the dropdownTitle.
+   */
+  addTitlePlaceholder() {
+    if (this.dropdown.searchbar) return;
+
+    this.titlePlaceholder = document.createElement('h4');
+    const nativeTitle = this.dropdownTitle.native;
+    this.titlePlaceholder.innerText = nativeTitle.innerText;
+    this.titlePlaceholder.style.minHeight = nativeTitle.clientHeight + 'px';
+    nativeTitle.classList.forEach((cl) => {
+      this.titlePlaceholder.classList.add(cl);
     });
+
+    nativeTitle.style.display = 'none';
+    this.native.prepend(this.titlePlaceholder);
+  }
+
+  /**
+   * Add min height to not introduce a height change on the dropdown.
+   * Custom fond might be used, so update min height not at start.
+   * titlePlaceholder is not present in case of searchbar.
+   */
+  addMinHeightOnTitlePlaceholder() {
+    if (!this.titlePlaceholder) return;
+
+    this.titlePlaceholder.style.minHeight =
+      this.titlePlaceholder.clientHeight + 'px';
   }
 
   handleBadge() {

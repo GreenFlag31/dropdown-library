@@ -1,6 +1,7 @@
-import { ElementRef, Injectable, QueryList } from '@angular/core';
-import { DropdownsData, Select, TranslatedValues } from './interface';
+import { Injectable, QueryList } from '@angular/core';
+import { DropdownsData, Select } from './interface';
 import { DropdownItemDirective } from './dropdown-item.directive';
+import { DropdownDirective } from './dropdown.directive';
 
 @Injectable({
   providedIn: 'root',
@@ -9,76 +10,39 @@ export class InternalDropdownService {
   dropdownID = 0;
   private dropdownsData: DropdownsData[] = [];
 
-  translate(translatedValues: TranslatedValues[]) {
-    this.populateDropdownsData(translatedValues);
+  translateItems(dropdown: DropdownDirective, text: string, itemID: number) {
+    if (!text) return;
 
-    for (const dropdown of this.dropdownsData) {
-      this.updateLabelsAndContent(dropdown);
-    }
-  }
-
-  getListOfElements(dropdown: ElementRef) {
-    const currentIndex = this.findCurrentIndexDropdown(dropdown.nativeElement);
-    const items: string[] = [];
+    const currentIndex = this.findCurrentDropdownIndex(dropdown.dropdownID);
 
     if (currentIndex !== -1) {
-      const children = this.dropdownsData[currentIndex].element.dropdownItems;
-
-      for (const child of children) {
-        items.push(child.native.innerText);
-      }
-    }
-
-    return items;
-  }
-
-  private findCurrentIndexDropdown(element: HTMLElement) {
-    return this.dropdownsData.findIndex(
-      (dropdown) => dropdown.element.native === element
-    );
-  }
-
-  private populateDropdownsData(translatedValues: TranslatedValues[]) {
-    for (const translation of translatedValues) {
-      const currentIndex = this.findCurrentIndexDropdown(
-        translation.dropdown.nativeElement
-      );
-
-      if (currentIndex !== -1) {
-        this.dropdownsData[currentIndex] = {
-          ...this.dropdownsData[currentIndex],
-          title: translation.title,
-          itemsValue: translation.items,
-          translation: true,
-        };
-      }
+      const currentDropdown = this.dropdownsData[currentIndex];
+      this.updateItems(currentDropdown, text, itemID);
+      currentDropdown.translation = true;
     }
   }
 
-  private updateLabelsAndContent(dropdownContent: DropdownsData) {
-    if (!dropdownContent.translation) return;
+  private updateItems(dropdown: DropdownsData, text: string, itemID: number) {
+    const currentDropdown = dropdown.element;
+    const activesIndex = dropdown.activesIndex;
+    const currentIndex = activesIndex.indexOf(itemID);
 
-    const arrayItems = dropdownContent.element.dropdownItems.toArray();
-    const dropdown = dropdownContent.element;
-    dropdown.clearListOfElements();
-
-    for (let i = 0; i < dropdownContent.itemsValue.length; i++) {
-      // update content
-      const element = dropdownContent.itemsValue[i];
-      arrayItems[i].updateValueTranslation(element);
-
-      // update labels
-      const activeIndex = dropdownContent.activesIndex.indexOf(i);
-      if (activeIndex !== -1) {
-        dropdown.updateTitleAndList(element);
-      }
+    if (currentIndex !== -1) {
+      currentDropdown.updateTranslationContentInPlace(currentIndex, text);
     }
+  }
 
-    // update title
-    dropdown.updateTitleValue(dropdownContent.title);
-    // update searchbar
-    dropdown.updateSearchbarValue();
-    dropdown.updateTitleDisplay(false);
+  translateTitle(dropdown: DropdownDirective, text: string) {
+    if (!text) return;
+
+    const currentIndex = this.findCurrentDropdownIndex(dropdown.dropdownID);
+    const currentDropdown = this.dropdownsData[currentIndex];
+
+    if (currentIndex !== -1) {
+      dropdown.updateTitleValue(text);
+      currentDropdown.title = text;
+      dropdown.updateSearchbarValue();
+    }
   }
 
   addActiveDropdownsAndContent(active: DropdownsData) {

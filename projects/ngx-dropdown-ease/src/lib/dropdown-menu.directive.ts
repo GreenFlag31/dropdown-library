@@ -67,7 +67,7 @@ export class DropdownMenuDirective implements OnInit, AfterViewInit {
   }
 
   /**
-   * In case of minimum selection
+   * In case of minimum item to select
    * Validate dropdown on basis of a minimum number of elements to select.
    */
   private validateDropdown() {

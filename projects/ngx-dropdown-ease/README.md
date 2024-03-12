@@ -14,7 +14,7 @@ Live demonstration of the ngx-dropdown-ease library [here](https://greenflag31.g
 
 You can install the library using the following command:
 
-```bash
+```
 npm i ngx-dropdown-ease
 ```
 
@@ -28,7 +28,7 @@ Add the `DropdownModule` to your module or standalone component.
 This library consists in a set of directives to apply in the template containing each a range of options:
 
 ```html
-<div ngxDropdown selection="multiple" [searchbar]="true" class="selection-container orders" #ingredients>
+<div ngxDropdown selection="multiple" [searchbar]="true">
   <div ngxDropdownTitleContainer secondarytitleColor="red">
     <h4 ngxDropdownTitle>Ingredients</h4>
   </div>
@@ -77,79 +77,46 @@ StyleSelection {
 
 # DropdownService
 
-This library exposes a `DropdownService` that contains the following API:
+This library exposes a `DropdownService` containing the following API:
 
 ```javascript
-// Translate content
-translate(translatedValues: TranslatedValues[]);
-
-// Get the list of your items text content for translation
-getListOfElements(dropdown: ElementRef);
-
-// Get all active dropdowns and content
 getDropdowns();
 ```
 
-See the next section for a complete example using translation.
+This method returns an array of active dropdowns containing their respective detailed informations.
+
+```javascript
+interface Dropdown {
+  element: HTMLElement;
+  itemsValue: string[];
+  activesValue: string[];
+  activesIndex: number[];
+  labelMinimumSelection: boolean;
+  selection: "single" | "multiple";
+  translation: boolean;
+}
+```
 
 # Translation
 
-This library supports translation by a third party library of your choice. The following example utilise the '@ngx-translate/core' library.
+This library supports translation by a third party library of your choice. The following example utilise the '@ngx-translate/core' library with a translate pipe in the template.
 
-Translated values should be provided at start and at language change through following:
+Simply provide the `onItemTranslation` and the `onTitleTranslation` pipes at the end of your template expression:
 
-```javascript
-// DOM content should be ready
-ngAfterViewInit() {
-  // Initialisation
-  this.translateService.onDefaultLangChange.subscribe(() => {
-    this.dropdownService.translate(this.dropdownsData());
-  });
-
-  // Changing language at runtime
-  this.translateService.onLangChange.subscribe(() => {
-    this.dropdownService.translate(this.dropdownsData());
-  });
-}
-
-dropdownsData() {
-  const colorsData: TranslatedValues = {
-    // @ViewChild ElementRef to identify the current dropdown
-    dropdown: this.RGBA,
-
-    // Title text content
-    title: this.translateService.instant('Colors'),
-
-    // Items text content (same as the HTML order)
-    items: [
-      this.translateService.instant('Red'),
-      this.translateService.instant('Green'),
-      this.translateService.instant('Blue'),
-    ],
-  };
-
-  // ...add here other content for translation
-
-  return [colorsData];
-}
+```html
+<div ngxDropdown>
+  <div ngxDropdownTitleContainer>
+    <h4 ngxDropdownTitle>{{ "Colors" | translate | onTitleTranslation }}</h4>
+  </div>
+  <div ngxDropdownMenu>
+    <p ngxDropdownItem>{{ "Red" | translate | onItemTranslation }}</p>
+    <p ngxDropdownItem>{{ "Green" | translate | onItemTranslation }}</p>
+    <p ngxDropdownItem>{{ "Blue" | translate | onItemTranslation }}</p>
+  </div>
+</div>
 ```
 
-Provide an object respecting following interface:
-
-```javascript
-interface TranslatedValues {
-  // The @ViewChild ElementRef that you attached to the ngxDropdown directive
-  dropdown: ElementRef;
-  // The ngxDropdownTitle title text content
-  title: string;
-  // All the ngxDropdownItem text content*
-  items: string[];
-}
-```
-
-\*If you have a long list of items or you don't want to fill it manually, you can call the `getListOfElements(dropdown: ElementRef)` method of the `DropdownService`. Pass as first argument the same `ElementRef` that you have provided to the `TranslatedValues` object. `getListOfElements` will return an array of your items text content (string[]), so that you can iterate over and call the synchronous translation method of your library (here, `this.translateService.instant(value)`).
-
-Translating content requires an extra step, but this is by far the cleanest solution to handle an asynchronous third party library.
+The active selection and the secondary title (the title on top of the dropdown) will be accordingly updated at initialisation or when changing the language at runtime.
 
 <a id="build-in"></a>
 
@@ -227,7 +194,7 @@ accordingly to ensure that the effect remains consistent.
 
 # Style customisation
 
-This library offers a basic style customisation API. A class based CSS approach has been favored, so you can _almost_ style everything. Directives attached to the DOM do not cause style encapsulation, so you can style the corresponding classes in the styling sheet of the hosting component as you would normally do for any html element (no need of `ViewEncapsulation.None`). Find the corresponding classes by inspecting the DOM.
+This library offers a basic style customisation API. A class based CSS approach has been favored, so you can _almost_ style everything. Add `ViewEncapsulation.None` to your component. Find the corresponding classes by inspecting the DOM.
 
 Following example changes the background color and the color of the menu:
 
@@ -250,9 +217,11 @@ This library has been documented and should provide autocomplete and help from y
 
 # Performance
 
-Even if this library has been optimised and follows the DRY principles (tested under the `ChangeDetectionStrategy.OnPush` strategy), it is _not recommended_ by Angular to display several hundreds of directives and a page (see [here](https://angular.io/guide/directive-composition-api#performance) in the documentation). If you have a lot of dropdowns in a page inside a list, you should rather opt for a pagination system.
+Even if this library has been optimised and follows DRY principles (tested under the `ChangeDetectionStrategy.OnPush` strategy), it is _not recommended_ by Angular to display several hundreds of directives and a page (see [here](https://angular.io/guide/directive-composition-api#performance) in the documentation). If you have a lot of dropdowns in a page inside a list, you should rather opt for a pagination system.
 
 # Change log
+
+V0.0.3: Simplification of the translation system by adding pipes in the template. Adding a preselection of the first item in case of searching an item in a dropdown where searchbar is enabled.
 
 # Report a Bug
 

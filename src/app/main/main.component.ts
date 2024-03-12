@@ -1,10 +1,8 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
-  ViewChild,
+  ViewEncapsulation,
 } from '@angular/core';
-import { TranslatedValues } from '../../../projects/ngx-dropdown-ease/src/lib/interface';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import {
   DropdownModule,
@@ -19,13 +17,9 @@ import { CommonModule } from '@angular/common';
   templateUrl: './main.component.html',
   styleUrl: './main.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  encapsulation: ViewEncapsulation.None,
 })
 export class MainComponent {
-  @ViewChild('RGBA') RGBA!: ElementRef<HTMLElement>;
-  @ViewChild('language') language!: ElementRef<HTMLElement>;
-  @ViewChild('habits') habits!: ElementRef<HTMLElement>;
-  @ViewChild('ingredients') ingredients!: ElementRef<HTMLElement>;
-
   countries = [
     {
       name: 'English',
@@ -47,49 +41,11 @@ export class MainComponent {
   ) {}
 
   ngAfterViewInit() {
-    console.log('v0.0.1');
-
-    // Initialisation
-    this.translateService.onDefaultLangChange.subscribe(() => {
-      this.dropdownService.translate(this.dropdownsData());
-    });
-
-    // Changing language at runtime
-    this.translateService.onLangChange.subscribe(() => {
-      this.dropdownService.translate(this.dropdownsData());
-    });
+    console.log('v0.0.3');
   }
 
-  dropdownsData() {
-    const languagesData: TranslatedValues = {
-      dropdown: this.language,
-      title: this.translateService.instant('Language'),
-      items: [
-        this.translateService.instant('English'),
-        this.translateService.instant('French'),
-      ],
-    };
-    const colorsData: TranslatedValues = {
-      dropdown: this.RGBA,
-      title: this.translateService.instant('Colors'),
-      items: [
-        this.translateService.instant('Red'),
-        this.translateService.instant('Green'),
-        this.translateService.instant('Blue'),
-      ],
-    };
-    const habitsData: TranslatedValues = {
-      dropdown: this.habits,
-      title: this.translateService.instant('Habits'),
-      items: [
-        this.translateService.instant('Wake up'),
-        this.translateService.instant('Code'),
-        this.translateService.instant('Sleep'),
-        this.translateService.instant('Repeat'),
-      ],
-    };
-
-    return [languagesData, colorsData, habitsData];
+  getContent() {
+    console.log(this.dropdownService.getDropdowns());
   }
 
   onLanguageChange(language: string) {

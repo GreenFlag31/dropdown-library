@@ -27,42 +27,45 @@
       translation is enabled will be updated.
     </p>
     <section class="dropdown-translate">
-      <div ngxDropdown class="selection-container" #language>
+      <div ngxDropdown class="selection-container">
         <div
           ngxDropdownTitleContainer
           mainTitleColor="#000"
           secondarytitleColor="deeppink"
         >
-          <h4 ngxDropdownTitle>Language</h4>
+          <h4 ngxDropdownTitle>
+            {{ "Language" | translate | onTitleTranslation }}
+          </h4>
         </div>
         <div
           ngxDropdownMenu
           animation="going-up 0.3s"
           [defaultActiveItems]="[0]"
-          #languageMenu
         >
           @for (country of countries; track $index) {
           <div
             ngxDropdownItem
             class="item"
-            [title]="country.name"
-            (click)="onLanguageChange(c.textContent || '')"
-            (keydown.enter)="onLanguageChange(c.textContent || '')"
+            [title]="c.innerText"
+            (click)="onLanguageChange(c.innerText)"
+            (keydown.enter)="onLanguageChange(c.innerText)"
           >
-            <img [src]="country.img" [alt]="country.name + ' flag'" />
-            <p #c>{{ country.name }}</p>
+            <img [src]="country.img" [alt]="c.innerText + ' flag'" />
+            <p #c>{{ country.name | translate | onItemTranslation }}</p>
           </div>
           }
         </div>
       </div>
 
-      <div ngxDropdown class="selection-container" #RGBA>
+      <div ngxDropdown class="selection-container">
         <div
           ngxDropdownTitleContainer
           mainTitleColor="#000"
           secondarytitleColor="deeppink"
         >
-          <h4 ngxDropdownTitle>Colors</h4>
+          <h4 ngxDropdownTitle>
+            {{ "Colors" | translate | onTitleTranslation }}
+          </h4>
         </div>
         <div
           ngxDropdownMenu
@@ -70,9 +73,9 @@
           animation="expand"
           [animationTimingMs]="200"
         >
-          <p ngxDropdownItem>Red</p>
-          <p ngxDropdownItem>Green</p>
-          <p ngxDropdownItem>Blue</p>
+          <p ngxDropdownItem>{{ "Red" | translate | onItemTranslation }}</p>
+          <p ngxDropdownItem>{{ "Green" | translate | onItemTranslation }}</p>
+          <p ngxDropdownItem>{{ "Blue" | translate | onItemTranslation }}</p>
         </div>
       </div>
     </section>
@@ -108,20 +111,19 @@
       </div>
     </section>
 
+    <button (click)="getContent()">Get content</button>
+
     <section class="habits-container">
       <h2 class="dropdown-main-title">Minimum number of items to select</h2>
       <p>
         Multiple selection dropdown with a minimum number of items to select,
         and the content is translated.
       </p>
-      <div
-        ngxDropdown
-        selection="multiple"
-        class="selection-container habits"
-        #habits
-      >
+      <div ngxDropdown selection="multiple" class="selection-container habits">
         <div ngxDropdownTitleContainer secondarytitleColor="darkblue">
-          <h4 ngxDropdownTitle>Habits</h4>
+          <h4 ngxDropdownTitle>
+            {{ "Habits" | translate | onTitleTranslation }}
+          </h4>
         </div>
         <div
           ngxDropdownMenu
@@ -129,10 +131,10 @@
           [minNumberElementsToSelect]="2"
           iconColor="darkblue"
         >
-          <p ngxDropdownItem>Wake up</p>
-          <p ngxDropdownItem>Code</p>
-          <p ngxDropdownItem>Sleep</p>
-          <p ngxDropdownItem>Repeat</p>
+          <p ngxDropdownItem>{{ "Wake up" | translate | onItemTranslation }}</p>
+          <p ngxDropdownItem>{{ "Code" | translate | onItemTranslation }}</p>
+          <p ngxDropdownItem>{{ "Sleep" | translate | onItemTranslation }}</p>
+          <p ngxDropdownItem>{{ "Repeat" | translate | onItemTranslation }}</p>
         </div>
       </div>
     </section>
@@ -154,7 +156,6 @@
         selection="multiple"
         [searchbar]="true"
         class="selection-container orders"
-        #ingredients
       >
         <div ngxDropdownTitleContainer secondarytitleColor="red">
           <h4 ngxDropdownTitle>Ingredients</h4>

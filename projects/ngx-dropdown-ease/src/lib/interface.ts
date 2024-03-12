@@ -1,4 +1,3 @@
-import { ElementRef } from '@angular/core';
 import { DropdownDirective } from './dropdown.directive';
 
 export interface StyleSelection {
@@ -25,7 +24,7 @@ export interface DropdownsData {
   element: DropdownDirective;
   title: string;
   activesIndex: number[];
-  itemsValue: string[];
+  activesValue: string[];
   translation: boolean;
 }
 
@@ -33,15 +32,10 @@ export interface Dropdown {
   element: HTMLElement;
   itemsValue: string[];
   activesValue: string[];
+  activesIndex: number[];
   labelMinimumSelection: boolean;
   selection: 'single' | 'multiple';
   translation: boolean;
 }
 
 export type Select = 'single' | 'multiple';
-
-export interface TranslatedValues {
-  dropdown: ElementRef;
-  title: string;
-  items: string[];
-}

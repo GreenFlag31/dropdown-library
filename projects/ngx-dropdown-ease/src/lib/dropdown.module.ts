@@ -7,6 +7,8 @@ import {
 import { DropdownTitleContainerDirective } from './dropdown-title-container.directive';
 import { DropdownItemDirective } from './dropdown-item.directive';
 import { DropdownMenuDirective } from './dropdown-menu.directive';
+import { OnChangePipe } from './on-item-translation.pipe';
+import { OnTitleTranslationPipe } from './on-title-translation.pipe';
 
 @NgModule({
   declarations: [],
@@ -17,6 +19,8 @@ import { DropdownMenuDirective } from './dropdown-menu.directive';
     DropdownTitleDirective,
     DropdownMenuDirective,
     DropdownItemDirective,
+    OnChangePipe,
+    OnTitleTranslationPipe,
   ],
   exports: [
     DropdownDirective,
@@ -24,6 +28,8 @@ import { DropdownMenuDirective } from './dropdown-menu.directive';
     DropdownTitleDirective,
     DropdownMenuDirective,
     DropdownItemDirective,
+    OnChangePipe,
+    OnTitleTranslationPipe,
   ],
 })
 export class DropdownModule {}
