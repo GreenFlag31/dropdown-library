@@ -107,9 +107,16 @@ main {
   height: 15px;
   display: block;
 }
-.dropdown-2 {
-  margin-top: 3rem;
+.get-content button {
+  margin-top: 1rem;
+  border: none;
+  color: #fff;
+  background: #09005e;
+  border-radius: 0.3rem;
+  cursor: pointer;
+  padding: 0.5rem 1rem;
 }
+
 .dropdown-translate {
   display: flex;
   justify-content: space-between;
